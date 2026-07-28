@@ -1,0 +1,12 @@
+{
+  "GetStartedPage": {
+    "pageTitle": "سجلات البدء",
+    "back": "رجوع",
+    "addRecord": "إضافة سجل",
+    "recId": "معرف السجل",
+    "uiChannel": "قناة واجهة المستخدم",
+    "importAddress": "عنوان الاستيراد",
+    "recordStatus": "حالة السجل",
+    "loading": "جار التحميل..."
+  }
+}

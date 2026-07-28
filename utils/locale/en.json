@@ -1,0 +1,14 @@
+{
+  "Profile":{},
+  "Sidebar":{},
+  "GetStartedPage": {
+    "pageTitle": "Get Started Records",
+    "back": "Back",
+    "addRecord": "Add Record",
+    "recId": "Rec ID",
+    "uiChannel": "UI Channel",
+    "importAddress": "Import Address",
+    "recordStatus": "Record Status",
+    "loading": "Loading..."
+  }
+}
