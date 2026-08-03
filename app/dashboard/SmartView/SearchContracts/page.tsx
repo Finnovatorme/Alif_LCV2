@@ -125,13 +125,12 @@ export default function SearchContractsPage() {
     ];
 
     const handleNavigateToDetails = (row: ContractRow) => {
-        const appId = Number(row.APPID || row.CIFID || row.id);
-        if (appId) {
-            dispatch(setSelectedUserId(appId));
-            dispatch(hasDashabordParams({ ...row, hideButton: false }));
-            localStorage.setItem("selectedAppId", String(appId));
-        }
-        router.push("/dashboard/UserTabScreen");
+        const cifId = row.CIFID || row.CifId || row.id || 1;
+        const lang = selectedLanguage === "ar" ? 2 : 1;
+        dispatch(hasDashabordParams({ ...row, CIFID: cifId, language: lang }));
+        dispatch(setSelectedUserId(Number(cifId)));
+        localStorage.setItem("searchContractParams", JSON.stringify({ CIFID: cifId, language: lang, ...row }));
+        router.push("/dashboard/SmartView/SearchContracts/ContractDetails");
     };
 
     const tableColumns: ColumnDef<ContractRow>[] = [
