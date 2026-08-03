@@ -36,6 +36,7 @@ export function FormFeilds(
 
   switch (config.type) {
     case "date":
+    case "time":
     case "input":
     case "text":
     case "password":
