@@ -35,14 +35,14 @@ const data = {
       isActive: true,
     },
     {
-      title: "admin",
+      title: "Admin",
       url: "#",
       icon: Settings2,
       items: [
         { title: "Search Contract", url: "/dashboard/SearchContract", icon: Frame },
         { title: "Target", url: "/dashboard/admin/TargetScreen", icon: Frame },
-        { title: "Allocations", url: "/dashboard/SearchContract", icon: Frame },
-        { title: "Message Campaign", url: "/dashboard/SearchContract", icon: Frame },
+        { title: "Allocations", url: "/dashboard/admin/AllocationScreen", icon: Frame },
+        { title: "Message Campaign", url: "/dashboard/admin/MessageCampaign", icon: Frame },
 
       ],
     },
@@ -52,16 +52,12 @@ const data = {
       icon: FilePlus,
       items: [
         {
-          title: "New Application",
-          url: "/dashboard/new-application",
-          icon: FilePlus,
-        }, {
           title: "Search Contract",
-          url: "/dashboard/new-application",
+          url: "/dashboard/SmartView/SearchContracts",
           icon: FilePlus,
         }, {
           title: "Follow Up",
-          url: "/dashboard/new-application",
+          url: "/dashboard/SmartView/Followup",
           icon: FilePlus,
         },
       ],

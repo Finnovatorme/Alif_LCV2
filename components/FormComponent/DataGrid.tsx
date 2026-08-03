@@ -163,10 +163,10 @@ export function ReusableDataTable<T extends Record<string, any>>(
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const defaultSortColumnId = getDefaultSortColumnId(columns);
   const [sorting, setSorting] = useState<SortingState>(
-    defaultSortColumnId ? [{ id: defaultSortColumnId, desc: true }] : [],
+    defaultSortColumnId ? [{ id: defaultSortColumnId, desc: false }] : [],
   );
   const [sortMode, setSortMode] = useState<SortMode>(
-    defaultSortColumnId ? "zToA" : "normal",
+    defaultSortColumnId ? "aToZ" : "normal",
   );
   const [pagination, setPagination] = useState({
     pageIndex: 0,
@@ -229,6 +229,10 @@ export function ReusableDataTable<T extends Record<string, any>>(
     }
 
     if (col.id === "actions") {
+      if (col.cell) {
+        allColumns.push(col);
+        return;
+      }
       allColumns.push({
         ...col,
         cell: ({ row }: { row: Row<T> }) => (

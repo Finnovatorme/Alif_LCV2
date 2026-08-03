@@ -9,6 +9,7 @@ import useLocales from "@/hooks/useLocals";
 import { useAuth } from "@/hooks/useAuth";
 import { FormFeilds } from "./FormFeilds";
 import { Form, FormField, FormItem } from "@/components/ui/form";
+import { Search } from "lucide-react";
 
 type AnyObj = Record<string, any>;
 
@@ -52,6 +53,9 @@ type Props = {
   submitBtn?: boolean;
   submitButtonText?: string;
   hideAddNewButton?: boolean;
+  submitBtnDisabled?: boolean;
+  disableUntilFilled?: boolean;
+  submitIcon?: React.ReactNode;
 };
 
 function formatDateInput(val: any) {
@@ -80,6 +84,9 @@ export default function FormComponent({
   submitBtn = true,
   submitButtonText = "Save",
   hideAddNewButton = false,
+  submitBtnDisabled = false,
+  disableUntilFilled = false,
+  submitIcon,
 }: Props) {
   const dispatch = useDispatch();
   const { translate } = useLocales();
@@ -108,7 +115,7 @@ export default function FormComponent({
     () =>
       (formFields ?? []).map((f) => ({
         ...f,
-        name: String(f.name).toUpperCase(),
+        name: String(f.name),
       })),
     [formFields],
   );
@@ -130,6 +137,21 @@ export default function FormComponent({
     mode: "onChange",
   });
   const { control, handleSubmit, reset, setValue, watch } = form;
+
+  const formValues = watch();
+  const isFormFilled = useMemo(() => {
+    return Object.values(formValues || {}).some(
+      (val) => val !== null && val !== undefined && String(val).trim() !== ""
+    );
+  }, [formValues]);
+
+  const isSubmitDisabled = submitBtnDisabled || (disableUntilFilled && !isFormFilled);
+
+  const iconToRender = submitIcon ?? (
+    submitButtonText.toLowerCase().includes("search") ? (
+      <Search className="w-4 h-4" />
+    ) : null
+  );
 
   // prefilled mapping
   useEffect(() => {
@@ -257,9 +279,16 @@ export default function FormComponent({
               <div className="mt-5 flex justify-end">
                 <button
                   type="submit"
-                  className="rounded-xl bg-slate-900 px-5 py-2 text-sm font-semibold text-white"
+                  disabled={isSubmitDisabled}
+                  className={clsx(
+                    "rounded-xl px-8 py-2.5 text-sm font-medium text-white transition-all flex items-center justify-center gap-2 min-w-[150px]",
+                    isSubmitDisabled
+                      ? "bg-gray-400 dark:bg-gray-700 cursor-not-allowed opacity-60"
+                      : "bg-blue-600 hover:bg-blue-700 cursor-pointer shadow-md active:scale-95"
+                  )}
                 >
-                  {submitButtonText}
+                  {iconToRender}
+                  <span>{submitButtonText}</span>
                 </button>
               </div>
             )}
