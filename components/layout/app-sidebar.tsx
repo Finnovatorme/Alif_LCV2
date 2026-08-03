@@ -35,7 +35,7 @@ const data = {
       isActive: true,
     },
     {
-      title: "admin",
+      title: "Admin",
       url: "#",
       icon: Settings2,
       items: [
@@ -52,16 +52,12 @@ const data = {
       icon: FilePlus,
       items: [
         {
-          title: "New Application",
-          url: "/dashboard/new-application",
-          icon: FilePlus,
-        }, {
           title: "Search Contract",
-          url: "/dashboard/new-application",
+          url: "/dashboard/SmartView/SearchContracts",
           icon: FilePlus,
         }, {
           title: "Follow Up",
-          url: "/dashboard/new-application",
+          url: "/dashboard/SmartView/Followup",
           icon: FilePlus,
         },
       ],
