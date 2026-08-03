@@ -41,8 +41,8 @@ const data = {
       items: [
         { title: "Search Contract", url: "/dashboard/SearchContract", icon: Frame },
         { title: "Target", url: "/dashboard/admin/TargetScreen", icon: Frame },
-        { title: "Allocations", url: "/dashboard/SearchContract", icon: Frame },
-        { title: "Message Campaign", url: "/dashboard/SearchContract", icon: Frame },
+        { title: "Allocations", url: "/dashboard/admin/AllocationScreen", icon: Frame },
+        { title: "Message Campaign", url: "/dashboard/admin/MessageCampaign", icon: Frame },
 
       ],
     },
