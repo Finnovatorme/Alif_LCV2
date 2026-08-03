@@ -43,7 +43,8 @@ const page = () => {
       header: "Actions",
     },
     {
-      accessorKey: "LCALLOCATIONGROUP",
+      id: "LCALLOCATIONGROUP",
+      accessorFn: () => "pin",
       header: "LC Allocation Group",
       cell: ({ row }: any) => (
         <div
@@ -373,7 +374,7 @@ const page = () => {
       />
 
       <Dialog open={allocationModalOpen} onOpenChange={handleAllocationModalClose}>
-        <DialogContent className="max-w-4xl">
+        <DialogContent className="sm:max-w-4xl">
           <DialogHeader>
             <DialogTitle>Allocate Group</DialogTitle>
           </DialogHeader>
