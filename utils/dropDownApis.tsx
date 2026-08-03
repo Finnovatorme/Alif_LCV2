@@ -224,3 +224,29 @@ export const fetchSchemeIdOptions = async (): Promise<Option[]> => {
     return [];
   }
 };
+
+type LCAllocationItem = {
+  RECID: string | number;
+  TCTGRECID?: string | number;
+  VALDESC1: string;
+};
+
+export const fetchLCAllocationGroupOptions = async (language?: string): Promise<any[]> => {
+  try {
+    const response = await axios.get(
+      `${process.env.BS_API_KEY}/api/CnfgVbValues/GetCnfgVbValues/LCALLOCATIONGROUP`,
+      { params: { language } }
+    );
+    const Data = response.data as LCAllocationItem[];
+    const options = Data.map((item) => ({
+      id: item.RECID.toString(),
+      tctgrecid: item?.TCTGRECID,
+      name: item.VALDESC1,
+      containerId: "Group",
+    }));
+    return options;
+  } catch (error) {
+    console.error("Error fetching LC Allocation Group options:", error);
+    return [];
+  }
+};

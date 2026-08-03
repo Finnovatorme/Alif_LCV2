@@ -5,18 +5,18 @@ const nextConfig: NextConfig = {
   reactStrictMode: false,
 
   env: {
-    BS_API_KEY: "https://demo.finnovator.com.sa:8010",
-    LO_API_KEY: "https://demo.finnovator.com.sa:8011",
-    // CONSUMER_CREDIT_REPORT_API: "http://101.46.51.31:8092/api/reports/export",
-    // CONSUMER_CONTRACT_REPORT_API: "http://101.46.51.31:8092/api/reports/export",
-    // CONSUMER_APPLICATION_FORM_API:
-    //   "http://101.46.51.31:8092/api/reports/export",
+    BS_API_KEY: "http://173.208.180.149:8081",
+    LO_API_KEY: "http://173.208.180.149:8084",
+    LM_API_KEY: "http://173.208.180.149:8065",
+    HOST_API_KEY: "http://173.208.180.149:8098",
+    DMS_API_KEY: "http://173.208.180.149:8088",
+    AML_API_KEY: "http://173.208.180.149:8090",
     SECRET_KEY:
       "4a5e3d8c2b7f1a9e6d8c3b2a7f1e9d6c4a5e3d8c2b7f1a9e6d8c3b2a7f1e9d6c",
   },
 
   async redirects() {
-    return [{ source: "/", destination: "/login", permanent: true }];
+    return [{ source: "/", destination: "/login", permanent: true }]; 
   },
 
   poweredByHeader: false,
