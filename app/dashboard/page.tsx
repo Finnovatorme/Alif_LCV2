@@ -3,7 +3,8 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import axios from "@/utils/axios";
 import { useDispatch, useSelector } from "react-redux";
-import { languageParams } from "@/lib/redux/slices/dashboardApplSlice";
+import { languageParams, hasDashabordParams } from "@/lib/redux/slices/dashboardApplSlice";
+import { setSelectedUserId } from "@/lib/redux/slices/userTabSlice";
 import { useRouter } from "next/navigation";
 import { ReusableDataTable } from "@/components/FormComponent/DataGrid";
 import { ColumnDef } from "@tanstack/react-table";
@@ -14,15 +15,8 @@ import TargetAchievement from "@/components/dashboard/TargetAchievement";
 import BarChartComponent from "@/components/dashboard/BarChartComponent";
 import HorizontalBarChartComponent from "@/components/dashboard/HorizontalBarChartComponent";
 import FollowupStatusChart from "@/components/dashboard/FollowupStatusChart";
-import { LayoutDashboard } from "lucide-react";
-
-const columns: ColumnDef<any>[] = [
-  { accessorKey: "CIFID", header: "Cif ID" },
-  { accessorKey: "USERID", header: "User ID" },
-  { accessorKey: "COLLECTORNAME", header: "Collector Name" },
-  { accessorKey: "LCALLOCATIONGROUP", header: "LC Allocation Group" },
-  { accessorKey: "TOTALOVERDUEAMOUNT", header: "Total Overdue Amount" },
-];
+import { LayoutDashboard, Eye } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export default function Page() {
   const { user, loading } = useAuth() as any;
@@ -38,13 +32,45 @@ export default function Page() {
   const [followUpCount, setFollowUpCount] = useState(0);
   const [dashboardLoading, setDashboardLoading] = useState(true);
 
+  const handleViewDetailsPage = (row: any) => {
+    const appId = Number(row.APPID || row.CIFID || row.id);
+    if (appId) {
+      dispatch(setSelectedUserId(appId));
+      dispatch(hasDashabordParams({ ...row, hideButton: false }));
+      localStorage.setItem("selectedAppId", String(appId));
+    }
+    router.push("/dashboard/UserTabScreen");
+  };
+
+  const columns: ColumnDef<any>[] = [
+    { accessorKey: "CIFID", header: "Cif ID" },
+    { accessorKey: "USERID", header: "User ID" },
+    { accessorKey: "COLLECTORNAME", header: "Collector Name" },
+    { accessorKey: "LCALLOCATIONGROUP", header: "LC Allocation Group" },
+    { accessorKey: "TOTALOVERDUEAMOUNT", header: "Total Overdue Amount" },
+    {
+      id: "actions",
+      header: "Action",
+      cell: ({ row }) => (
+        <Button
+          size="sm"
+          className="h-8 px-3 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow-sm transition-all flex items-center gap-1.5 mx-auto cursor-pointer"
+          onClick={() => handleViewDetailsPage(row.original)}
+        >
+          <Eye className="w-3.5 h-3.5" />
+          Details
+        </Button>
+      ),
+    },
+  ];
+
   useEffect(() => {
     if (loading || !user) return;
-    
+
     const fetchDashboardData = async () => {
       const resolvedUserId = user.UserId || user.userId || user.Userid;
       if (!resolvedUserId) return;
-      
+
       setDashboardLoading(true);
       try {
         const hostUrl = process.env.HOST_API_KEY || "http://173.208.180.149:8098";
@@ -68,7 +94,7 @@ export default function Page() {
         setDashboardLoading(false);
       }
     };
-    
+
     fetchDashboardData();
   }, [user, loading, language]);
 
@@ -90,28 +116,28 @@ export default function Page() {
           Collection Dashboard
         </h1>
       </div>
-      
+
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 mb-10">
-        <GaugeChart 
-          title="Pending Followup" 
-          total={followUp.PENDING_FOLLOWUP?.length || 0} 
-          chartData={followUpCount} 
+        <GaugeChart
+          title="Pending Followup"
+          total={followUp.PENDING_FOLLOWUP?.length || 0}
+          chartData={followUpCount}
         />
-        <GaugeChart 
-          title="Completed Followup" 
-          total={followUp.COMPLETE_FOLLOWUP?.length || 0} 
-          chartData={followUpCount} 
+        <GaugeChart
+          title="Completed Followup"
+          total={followUp.COMPLETE_FOLLOWUP?.length || 0}
+          chartData={followUpCount}
         />
-        <GaugeChart 
-          title="Escalated Cases" 
-          total={followUp.ESCALATED_CASES?.length || 0} 
-          chartData={followUpCount} 
+        <GaugeChart
+          title="Escalated Cases"
+          total={followUp.ESCALATED_CASES?.length || 0}
+          chartData={followUpCount}
         />
-        <ProductsPieChart 
-          title="Products" 
-          data={chartData} 
+        <ProductsPieChart
+          title="FollowUps"
+          data={chartData}
         />
-        <TargetAchievement 
+        <TargetAchievement
           title="Target General"
           allocated={200}
           achieved={150}
@@ -119,9 +145,9 @@ export default function Page() {
       </div>
 
       <div className="flex flex-col gap-10">
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 lg:gap-12">
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 lg:gap-12">
           {/* Table Container 1 */}
-          <div className="relative group rounded-3xl p-[1px] bg-gradient-to-b from-gray-200 to-transparent dark:from-gray-800 transition-all duration-500 hover:shadow-[0_0_40px_-10px_rgba(15,142,221,0.15)]">
+          <div className="xl:col-span-7 relative group rounded-3xl p-[1px] bg-gradient-to-b from-gray-200 to-transparent dark:from-gray-800 transition-all duration-500 hover:shadow-[0_0_40px_-10px_rgba(15,142,221,0.15)]">
             <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-2xl rounded-[23px] p-6 lg:p-8 h-full border border-white/40 dark:border-gray-700/30 flex flex-col shadow-[inset_0_1px_1px_rgba(255,255,255,0.4)]">
               <ReusableDataTable
                 title="Pending Followup"
@@ -131,12 +157,14 @@ export default function Page() {
               />
             </div>
           </div>
-          <BarChartComponent title="Customer Distribution By Group" />
+          <div className="xl:col-span-5">
+            <BarChartComponent title="Customer Distribution By Group" />
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 lg:gap-12">
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 lg:gap-12">
           {/* Table Container 2 */}
-          <div className="relative group rounded-3xl p-[1px] bg-gradient-to-b from-gray-200 to-transparent dark:from-gray-800 transition-all duration-500 hover:shadow-[0_0_40px_-10px_rgba(15,142,221,0.15)]">
+          <div className="xl:col-span-7 relative group rounded-3xl p-[1px] bg-gradient-to-b from-gray-200 to-transparent dark:from-gray-800 transition-all duration-500 hover:shadow-[0_0_40px_-10px_rgba(15,142,221,0.15)]">
             <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-2xl rounded-[23px] p-6 lg:p-8 h-full border border-white/40 dark:border-gray-700/30 flex flex-col shadow-[inset_0_1px_1px_rgba(255,255,255,0.4)]">
               <ReusableDataTable
                 title="Completed Followup"
@@ -146,12 +174,14 @@ export default function Page() {
               />
             </div>
           </div>
-          <HorizontalBarChartComponent title="Collection Performance" />
+          <div className="xl:col-span-5">
+            <HorizontalBarChartComponent title="Collection Performance" />
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 lg:gap-12">
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 lg:gap-12">
           {/* Table Container 3 */}
-          <div className="relative group rounded-3xl p-[1px] bg-gradient-to-b from-gray-200 to-transparent dark:from-gray-800 transition-all duration-500 hover:shadow-[0_0_40px_-10px_rgba(15,142,221,0.15)]">
+          <div className="xl:col-span-7 relative group rounded-3xl p-[1px] bg-gradient-to-b from-gray-200 to-transparent dark:from-gray-800 transition-all duration-500 hover:shadow-[0_0_40px_-10px_rgba(15,142,221,0.15)]">
             <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-2xl rounded-[23px] p-6 lg:p-8 h-full border border-white/40 dark:border-gray-700/30 flex flex-col shadow-[inset_0_1px_1px_rgba(255,255,255,0.4)]">
               <ReusableDataTable
                 title="Escalated Followup"
@@ -161,7 +191,9 @@ export default function Page() {
               />
             </div>
           </div>
-          <FollowupStatusChart title="Follow-up Status Distribution" />
+          <div className="xl:col-span-5">
+            <FollowupStatusChart title="Follow-up Status Distribution" />
+          </div>
         </div>
       </div>
     </div>

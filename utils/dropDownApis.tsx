@@ -13,10 +13,12 @@ type VbItem = {
 
 export const vbValue = async (
   category: string | number,
+  language?: string,
 ): Promise<Option[]> => {
   try {
     const response = await axios.get(
       `${process.env.BS_API_KEY}/api/CnfgVbValues/GetCnfgVbValues/${category}`,
+      { params: { language } }
     );
 
     const data = response.data as VbItem[];
