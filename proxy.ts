@@ -14,7 +14,7 @@ function buildCsp(nonce: string) {
     `img-src 'self' data: blob:`,
     `font-src 'self' data:`,
 
-    `connect-src 'self' https://demo.finnovator.com.sa:8010 https://demo.finnovator.com.sa:8011`,
+    `connect-src 'self' https://demo.finnovator.com.sa:8010 https://demo.finnovator.com.sa:8011 http://173.208.180.149:8098 http://173.208.180.149:8081 http://173.208.180.149:8084`,
 
     // Next.js Dev mode and Hot Reloading needs 'unsafe-inline' and 'unsafe-eval'.
     // Production can use strict-dynamic with nonce if passed to <Script /> components.

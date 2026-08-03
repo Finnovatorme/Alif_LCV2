@@ -35,20 +35,32 @@ const data = {
       isActive: true,
     },
     {
-      title: "Smart View",
+      title: "admin",
       url: "#",
       icon: Settings2,
       items: [
         { title: "Search Contract", url: "/dashboard/SearchContract", icon: Frame },
+        { title: "Target", url: "/dashboard/admin/TargetScreen", icon: Frame },
+        { title: "Allocations", url: "/dashboard/SearchContract", icon: Frame },
+        { title: "Message Campaign", url: "/dashboard/SearchContract", icon: Frame },
+
       ],
     },
     {
-      title: "New Application",
+      title: "Smart View",
       url: "#",
       icon: FilePlus,
       items: [
         {
           title: "New Application",
+          url: "/dashboard/new-application",
+          icon: FilePlus,
+        }, {
+          title: "Search Contract",
+          url: "/dashboard/new-application",
+          icon: FilePlus,
+        }, {
+          title: "Follow Up",
           url: "/dashboard/new-application",
           icon: FilePlus,
         },
