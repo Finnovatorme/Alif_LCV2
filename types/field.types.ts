@@ -14,6 +14,7 @@ export type FieldType =
   | "switch"
   | "radio"
   | "date"
+  | "time"
   | "calender"
   | "file"
   | "section"; // ✅ add section
