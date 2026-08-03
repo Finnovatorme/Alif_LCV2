@@ -140,7 +140,7 @@ const DropZone = ({ dropDownValues, handleSave, selectedRow }: DropZoneProps) =>
       </div>
 
       <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
-        <div className="flex flex-wrap justify-center gap-4 mt-4">
+        <div className="flex flex-row justify-center gap-8 mt-4 w-full">
           {containers.map((containerId) => (
             <div key={containerId}>
               <Droppable id={containerId} groupList={groupList} />
