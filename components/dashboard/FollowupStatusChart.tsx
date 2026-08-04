@@ -26,11 +26,11 @@ export default function FollowupStatusChart({ title }: FollowupStatusChartProps)
     const fetchData = async () => {
       const resolvedUserId = user?.UserId || user?.userId || user?.Userid;
       if (!resolvedUserId) return;
-      
+
       try {
         const bsUrl = process.env.BS_API_KEY || "http://173.208.180.149:8081";
-        const hostUrl = process.env.HOST_API_KEY || "http://173.208.180.149:8098";
-        
+        const hostUrl = process.env.HOST_API_KEY;
+
         // Fetch Result options
         const resultRes = await axios.get(
           `${bsUrl}/api/CnfgVbValues/GetCnfgVbValues/COLLFOLLOWUPRESULT`,
@@ -67,7 +67,7 @@ export default function FollowupStatusChart({ title }: FollowupStatusChartProps)
         console.error("Error fetching follow-up status data:", error);
       }
     };
-    
+
     if (user) fetchData();
   }, [user, language]);
 
@@ -83,37 +83,37 @@ export default function FollowupStatusChart({ title }: FollowupStatusChartProps)
           <div className="h-[320px] w-full">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData} margin={{ top: 20, right: 30, left: 0, bottom: 50 }}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-              <XAxis 
-                dataKey="name" 
-                tick={{ fontSize: 12, fill: "#64748b" }} 
-                angle={-45} 
-                textAnchor="end"
-                interval={0}
-                axisLine={false}
-                tickLine={false}
-              />
-              <YAxis tick={{ fontSize: 12, fill: "#64748b" }} axisLine={false} tickLine={false} />
-              <Tooltip 
-                contentStyle={{ borderRadius: "8px", border: "none", boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1)" }}
-                cursor={{ fill: "rgba(15, 142, 221, 0.05)" }}
-              />
-              {/* <Legend wrapperStyle={{ fontSize: "12px", paddingTop: "20px" }} /> */}
-              {keys.map((key, index) => (
-                <Bar 
-                  key={key} 
-                  dataKey={key} 
-                  stackId="a" 
-                  fill={COLORS[index % COLORS.length]} 
-                  radius={index === keys.length - 1 ? [4, 4, 0, 0] : [0, 0, 0, 0]} 
-                  barSize={40} 
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                <XAxis
+                  dataKey="name"
+                  tick={{ fontSize: 12, fill: "#64748b" }}
+                  angle={-45}
+                  textAnchor="end"
+                  interval={0}
+                  axisLine={false}
+                  tickLine={false}
                 />
-              ))}
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      </CardContent>
-    </Card>
+                <YAxis tick={{ fontSize: 12, fill: "#64748b" }} axisLine={false} tickLine={false} />
+                <Tooltip
+                  contentStyle={{ borderRadius: "8px", border: "none", boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1)" }}
+                  cursor={{ fill: "rgba(15, 142, 221, 0.05)" }}
+                />
+                {/* <Legend wrapperStyle={{ fontSize: "12px", paddingTop: "20px" }} /> */}
+                {keys.map((key, index) => (
+                  <Bar
+                    key={key}
+                    dataKey={key}
+                    stackId="a"
+                    fill={COLORS[index % COLORS.length]}
+                    radius={index === keys.length - 1 ? [4, 4, 0, 0] : [0, 0, 0, 0]}
+                    barSize={40}
+                  />
+                ))}
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

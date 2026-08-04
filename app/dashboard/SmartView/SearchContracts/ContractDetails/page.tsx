@@ -45,7 +45,7 @@ export default function ContractDetailsPage() {
     const fetchCustomerSummary = async () => {
       setLoading(true);
       try {
-        const hostUrl = process.env.HOST_API_KEY || "http://173.208.180.149:8098";
+        const hostUrl = process.env.HOST_API_KEY;
         const response = await axios.get(
           `${hostUrl}/api/Customer/get-CustomerSummary`,
           {
@@ -196,10 +196,10 @@ export default function ContractDetailsPage() {
                       {val === null || val === undefined || String(val).trim() === ""
                         ? "—"
                         : typeof val === "boolean"
-                        ? val
-                          ? "Yes"
-                          : "No"
-                        : String(val)}
+                          ? val
+                            ? "Yes"
+                            : "No"
+                          : String(val)}
                     </span>
                   </div>
                 ))}

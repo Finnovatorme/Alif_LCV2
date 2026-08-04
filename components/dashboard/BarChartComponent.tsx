@@ -25,7 +25,7 @@ export default function BarChartComponent({ title }: BarChartProps) {
     try {
       const resolvedUserId = user?.UserId || user?.userId || user?.Userid;
       if (!resolvedUserId) return;
-      const hostUrl = process.env.HOST_API_KEY || "http://173.208.180.149:8098";
+      const hostUrl = process.env.HOST_API_KEY;
       const response = await axios.get(
         `${hostUrl}/api/Dashboard/get-DashboardCustomerByGroup`,
         {
@@ -63,33 +63,33 @@ export default function BarChartComponent({ title }: BarChartProps) {
           <div className="h-[320px] w-full">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData} margin={{ top: 20, right: 30, left: 0, bottom: 50 }}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-              <XAxis 
-                dataKey="name" 
-                tick={{ fontSize: 12, fill: "#64748b" }} 
-                angle={-45} 
-                textAnchor="end"
-                interval={0}
-                axisLine={false}
-                tickLine={false}
-              />
-              <YAxis tick={{ fontSize: 12, fill: "#64748b" }} axisLine={false} tickLine={false} />
-              <Tooltip 
-                contentStyle={{ borderRadius: "8px", border: "none", boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1)" }}
-                cursor={{ fill: "rgba(15, 142, 221, 0.05)" }}
-              />
-              <Bar dataKey="value" fill="url(#colorUv)" radius={[6, 6, 0, 0]} barSize={40} />
-              <defs>
-                <linearGradient id="colorUv" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#0ea5e9" stopOpacity={0.9}/>
-                  <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.9}/>
-                </linearGradient>
-              </defs>
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      </CardContent>
-    </Card>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                <XAxis
+                  dataKey="name"
+                  tick={{ fontSize: 12, fill: "#64748b" }}
+                  angle={-45}
+                  textAnchor="end"
+                  interval={0}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <YAxis tick={{ fontSize: 12, fill: "#64748b" }} axisLine={false} tickLine={false} />
+                <Tooltip
+                  contentStyle={{ borderRadius: "8px", border: "none", boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1)" }}
+                  cursor={{ fill: "rgba(15, 142, 221, 0.05)" }}
+                />
+                <Bar dataKey="value" fill="url(#colorUv)" radius={[6, 6, 0, 0]} barSize={40} />
+                <defs>
+                  <linearGradient id="colorUv" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#0ea5e9" stopOpacity={0.9} />
+                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.9} />
+                  </linearGradient>
+                </defs>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

@@ -134,7 +134,7 @@ export const FollowUpModal: React.FC<FollowUpModalProps> = ({
   const handlePostFollowUp = async (dataToPost: Record<string, any>) => {
     setSubmitting(true);
     try {
-      const hostUrl = process.env.HOST_API_KEY || "http://173.208.180.149:8098";
+      const hostUrl = process.env.HOST_API_KEY;
       const nowIso = new Date().toISOString();
 
       const nextActDateIso = dataToPost.nextActionDate

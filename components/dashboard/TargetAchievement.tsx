@@ -29,7 +29,7 @@ export default function TargetAchievement({ title, allocated = 0, achieved = 0 }
       const resolvedUserId = user?.UserId || user?.userId || user?.Userid;
       if (!resolvedUserId) return;
       try {
-        const hostUrl = process.env.HOST_API_KEY || "http://173.208.180.149:8098";
+        const hostUrl = process.env.HOST_API_KEY;
         const response = await axios.get(
           `${hostUrl}/api/Dashboard/get-DashboardCollectionAcheivement`,
           {
@@ -52,7 +52,7 @@ export default function TargetAchievement({ title, allocated = 0, achieved = 0 }
 
   const displayAllocated = data.allocated || allocated;
   const displayAchieved = data.achieved || achieved;
-  
+
   // Dummy data for the sparkline background
   const sparklineData = [
     { value: 20 }, { value: 30 }, { value: 25 }, { value: 40 }, { value: 35 }, { value: 50 }, { value: displayAchieved }
@@ -65,19 +65,19 @@ export default function TargetAchievement({ title, allocated = 0, achieved = 0 }
           <AreaChart data={sparklineData} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
             <defs>
               <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#10b981" stopOpacity={0.8}/>
-                <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                <stop offset="5%" stopColor="#10b981" stopOpacity={0.8} />
+                <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
               </linearGradient>
             </defs>
             <Area type="monotone" dataKey="value" stroke="#10b981" fillOpacity={1} fill="url(#colorValue)" />
           </AreaChart>
         </ResponsiveContainer>
       </div>
-      
+
       <CardHeader className="pb-2 pt-6 relative z-10">
         <CardTitle className="text-sm font-bold text-gray-500 dark:text-gray-400 tracking-wider uppercase">{title}</CardTitle>
       </CardHeader>
-      
+
       <CardContent className="flex-1 relative z-10 flex flex-col justify-end pb-6">
         <div className="flex flex-col gap-2">
           <div className="flex justify-between items-end">
