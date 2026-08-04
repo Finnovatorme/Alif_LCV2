@@ -33,13 +33,18 @@ export default function Page() {
   const [dashboardLoading, setDashboardLoading] = useState(true);
 
   const handleViewDetailsPage = (row: any) => {
-    const appId = Number(row.APPID || row.CIFID || row.id);
-    if (appId) {
+    const cifId = row.CIFID || row.CifId || row.APPID || row.id;
+    const appId = Number(cifId);
+    if (cifId) {
       dispatch(setSelectedUserId(appId));
-      dispatch(hasDashabordParams({ ...row, hideButton: false }));
-      localStorage.setItem("selectedAppId", String(appId));
+      dispatch(hasDashabordParams({ ...row, CIFID: cifId, hideButton: false }));
+      localStorage.setItem("selectedAppId", String(cifId));
+      localStorage.setItem(
+        "followupParams",
+        JSON.stringify({ ...row, CIFID: cifId, hideButton: false })
+      );
     }
-    router.push("/dashboard/UserTabScreen");
+    router.push("/dashboard/SmartView/Followup/FollowupActions");
   };
 
   const columns: ColumnDef<any>[] = [
@@ -73,7 +78,7 @@ export default function Page() {
 
       setDashboardLoading(true);
       try {
-        const hostUrl = process.env.HOST_API_KEY || "http://173.208.180.149:8098";
+        const hostUrl = process.env.HOST_API_KEY;
         const response = await axios.get(
           `${hostUrl}/api/Dashboard/get-UserDashboard`,
           {

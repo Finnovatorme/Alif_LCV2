@@ -194,7 +194,7 @@ export default function SearchContractsPage() {
     const handleSearch = async (formValues: Record<string, any>) => {
         setLoading(true);
         try {
-            const hostUrl = process.env.HOST_API_KEY || "http://173.208.180.149:8098";
+            const hostUrl = process.env.HOST_API_KEY;
             const params = Object.fromEntries(
                 Object.entries(formValues).filter(([, v]) => v !== null && v !== undefined && v !== "")
             );

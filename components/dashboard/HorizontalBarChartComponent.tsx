@@ -25,14 +25,14 @@ export default function HorizontalBarChartComponent({ title }: HorizontalBarChar
     try {
       const resolvedUserId = user?.UserId || user?.userId || user?.Userid;
       if (!resolvedUserId) return;
-      const hostUrl = process.env.HOST_API_KEY || "http://173.208.180.149:8098";
+      const hostUrl = process.env.HOST_API_KEY;
       const response = await axios.get(
         `${hostUrl}/api/Dashboard/get-DashboardCollectionPerformance`,
         {
           params: { UserID: resolvedUserId, language },
         }
       );
-      
+
       if (response.data && Array.isArray(response.data) && response.data.length > 0) {
         const item = response.data[0];
         setChartData([
@@ -63,29 +63,29 @@ export default function HorizontalBarChartComponent({ title }: HorizontalBarChar
         <CardContent className="flex-1 pb-6 px-4 lg:px-8">
           <div className="h-[250px] w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart 
-                data={chartData} 
+              <BarChart
+                data={chartData}
                 layout="vertical"
                 margin={{ top: 20, right: 30, left: 40, bottom: 20 }}
               >
                 <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#e2e8f0" />
                 <XAxis type="number" tick={{ fontSize: 12, fill: "#64748b" }} axisLine={false} tickLine={false} />
-                <YAxis 
-                  dataKey="name" 
-                  type="category" 
-                  tick={{ fontSize: 12, fill: "#64748b" }} 
-                  axisLine={false} 
-                  tickLine={false} 
+                <YAxis
+                  dataKey="name"
+                  type="category"
+                  tick={{ fontSize: 12, fill: "#64748b" }}
+                  axisLine={false}
+                  tickLine={false}
                 />
-                <Tooltip 
+                <Tooltip
                   contentStyle={{ borderRadius: "8px", border: "none", boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1)" }}
                   cursor={{ fill: "rgba(15, 142, 221, 0.05)" }}
                 />
                 <Bar dataKey="value" fill="url(#colorUvHoriz)" radius={[0, 6, 6, 0]} barSize={20} />
                 <defs>
                   <linearGradient id="colorUvHoriz" x1="0" y1="0" x2="1" y2="0">
-                    <stop offset="5%" stopColor="#14b8a6" stopOpacity={0.9}/>
-                    <stop offset="95%" stopColor="#0ea5e9" stopOpacity={0.9}/>
+                    <stop offset="5%" stopColor="#14b8a6" stopOpacity={0.9} />
+                    <stop offset="95%" stopColor="#0ea5e9" stopOpacity={0.9} />
                   </linearGradient>
                 </defs>
               </BarChart>

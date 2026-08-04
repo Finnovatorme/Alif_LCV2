@@ -11,7 +11,7 @@ import { DemographicCustomerDetails } from "./components/DemographicCustomerDeta
 
 export const followupCustomerDetailsGet = async (params: Record<string, any>) => {
   try {
-    const hostUrl = process.env.HOST_API_KEY || "http://173.208.180.149:8098";
+    const hostUrl = process.env.HOST_API_KEY;
     const response = await axios.get(
       `${hostUrl}/api/Customer/get-CustomerDetails`,
       { params }
@@ -27,7 +27,7 @@ export const followupCustomerDetailsGet = async (params: Record<string, any>) =>
 
 export const followupDetailsGet = async (params: Record<string, any>) => {
   try {
-    const hostUrl = process.env.HOST_API_KEY || "http://173.208.180.149:8098";
+    const hostUrl = process.env.HOST_API_KEY;
     const response = await axios.get(
       `${hostUrl}/api/TranFollowUpDetails/get-FollowUpDetails`,
       { params: params?.params ? params.params : params }
@@ -55,19 +55,24 @@ export default function FollowupActionsPage() {
     let activeCifId: number | string = 1;
     let activeLang: number = selectedLanguage === "ar" ? 2 : 1;
 
-    if (reduxParams && (reduxParams.CIFID || reduxParams.CifId)) {
-      activeCifId = reduxParams.CIFID || reduxParams.CifId;
+    if (reduxParams && (reduxParams.CIFID || reduxParams.CifId || reduxParams.APPID || reduxParams.id)) {
+      activeCifId = reduxParams.CIFID || reduxParams.CifId || reduxParams.APPID || reduxParams.id;
       if (reduxParams.language) activeLang = reduxParams.language;
     } else {
       const saved = localStorage.getItem("followupParams");
+      const savedAppId = localStorage.getItem("selectedAppId");
       if (saved) {
         try {
           const parsed = JSON.parse(saved);
-          if (parsed.CIFID || parsed.CifId) activeCifId = parsed.CIFID || parsed.CifId;
+          if (parsed.CIFID || parsed.CifId || parsed.APPID || parsed.id) {
+            activeCifId = parsed.CIFID || parsed.CifId || parsed.APPID || parsed.id;
+          }
           if (parsed.language) activeLang = parsed.language;
         } catch (e) {
           console.error("Error parsing saved followup params", e);
         }
+      } else if (savedAppId) {
+        activeCifId = savedAppId;
       }
     }
 
