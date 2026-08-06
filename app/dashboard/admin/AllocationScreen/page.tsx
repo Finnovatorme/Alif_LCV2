@@ -17,7 +17,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 // API Helpers
 const fetchTargetOptions = async (language: number): Promise<Option[]> => {
   try {
-    const hostUrl = process.env.HOST_API_KEY || "http://173.208.180.149:8098";
+    const hostUrl = process.env.HOST_API_KEY;
     const res = await axios.get(`${hostUrl}/api/CnfgTargets/get-CnfgTarget`, {
       params: { language },
     });
@@ -36,7 +36,7 @@ const fetchTargetOptions = async (language: number): Promise<Option[]> => {
 
 const fetchUnAssignedCustomerData = async (params: any) => {
   try {
-    const hostUrl = process.env.HOST_API_KEY || "http://173.208.180.149:8098";
+    const hostUrl = process.env.HOST_API_KEY;
     const res = await axios.get(`${hostUrl}/api/Customer/get-UnassignedCustomer`, { params });
     if (Array.isArray(res.data)) {
       return res.data.map((item: any, index: number) => ({ ...item, id: item.CIFID || index + 1 }));
@@ -50,7 +50,7 @@ const fetchUnAssignedCustomerData = async (params: any) => {
 
 const fetchCollectorsCustomerData = async (params: any) => {
   try {
-    const hostUrl = process.env.HOST_API_KEY || "http://173.208.180.149:8098";
+    const hostUrl = process.env.HOST_API_KEY;
     const res = await axios.get(`${hostUrl}/api/Collector/get-CollectorUsers`, { params });
     if (Array.isArray(res.data)) {
       return res.data.map((item: any, index: number) => ({ ...item, id: item.USERID || index + 1 }));
@@ -64,7 +64,7 @@ const fetchCollectorsCustomerData = async (params: any) => {
 
 const fetchRoleIdOptions = async (language: number): Promise<Option[]> => {
   try {
-    const hostUrl = process.env.HOST_API_KEY || "http://173.208.180.149:8098";
+    const hostUrl = process.env.HOST_API_KEY;
     const response = await axios.get(
       `${hostUrl}/api/Collector/get-CollectorRoles`,
       {
@@ -270,7 +270,7 @@ export default function AllocationScreenPage() {
     };
 
     try {
-      const hostUrl = process.env.HOST_API_KEY || "http://173.208.180.149:8098";
+      const hostUrl = process.env.HOST_API_KEY;
       const response = await axios.post(
         `${hostUrl}/api/Allocations/add-manual-CaseAllocation`,
         payload
@@ -450,9 +450,8 @@ export default function AllocationScreenPage() {
                       collectors.map((c) => (
                         <tr
                           key={String(c.USERID)}
-                          className={`hover:bg-blue-50/50 dark:hover:bg-blue-950/20 transition-colors ${
-                            selectedCollectorIds.includes(c.USERID) ? "bg-blue-50/80 dark:bg-blue-950/40" : ""
-                          }`}
+                          className={`hover:bg-blue-50/50 dark:hover:bg-blue-950/20 transition-colors ${selectedCollectorIds.includes(c.USERID) ? "bg-blue-50/80 dark:bg-blue-950/40" : ""
+                            }`}
                         >
                           <td className="p-3 text-center">
                             <input
@@ -732,9 +731,8 @@ export default function AllocationScreenPage() {
                       contracts.map((item) => (
                         <tr
                           key={String(item.CIFID)}
-                          className={`hover:bg-blue-50/50 dark:hover:bg-blue-950/20 transition-colors ${
-                            selectedContractCifIds.includes(item.CIFID) ? "bg-blue-50/80 dark:bg-blue-950/40" : ""
-                          }`}
+                          className={`hover:bg-blue-50/50 dark:hover:bg-blue-950/20 transition-colors ${selectedContractCifIds.includes(item.CIFID) ? "bg-blue-50/80 dark:bg-blue-950/40" : ""
+                            }`}
                         >
                           <td className="p-3 text-center">
                             <input

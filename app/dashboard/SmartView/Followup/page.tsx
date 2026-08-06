@@ -112,6 +112,16 @@ export default function FollowupPage() {
             type: "text",
             placeholder: "Mobile Number",
         },
+        {
+            name: "Language",
+            label: "Language",
+            type: "select",
+            placeholder: "Select Language",
+            options: [
+                { label: "English", value: 1 },
+                { label: "Arabic", value: 2 },
+            ],
+        },
     ];
 
     const handleNavigateToDetails = (row: ContractRow) => {
@@ -181,11 +191,17 @@ export default function FollowupPage() {
         },
     ];
 
-    const handleSearch = async () => {
+    const handleSearch = async (formValues: Record<string, any>) => {
         setLoading(true);
         try {
-            const hostUrl = process.env.HOST_API_KEY || "http://173.208.180.149:8098";
-            const params: Record<string, any> = { language: selectedLanguage === "ar" ? 2 : 1 };
+            const hostUrl = process.env.HOST_API_KEY;
+            const params = Object.fromEntries(
+                Object.entries(formValues || {}).filter(([, v]) => v !== null && v !== undefined && v !== "")
+            );
+
+            if (!params.Language && !params.language) {
+                params.language = selectedLanguage === "ar" ? 2 : 1;
+            }
 
             const response = await axios.get(
                 `${hostUrl}/api/Customer/get-SearchCustomer`,
