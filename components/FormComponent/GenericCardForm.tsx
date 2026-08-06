@@ -43,8 +43,8 @@ type AnyFormValues = Record<string, any>;
 interface GenericCardFormProps {
   title: string;
   icon?: LucideIcon;
-  apiEndpoint: string;
-  id: string | number;
+  apiEndpoint?: string;
+  id?: string | number;
   idParamName?: string;
   formFields: FieldConfig[];
   onDataLoaded?: (data: any) => void;
@@ -57,10 +57,15 @@ interface GenericCardFormProps {
    */
   onSubmit?: (
     values: AnyFormValues,
-    ctx: { baseRecord: any; id: string | number },
+    ctx: { baseRecord: any; id?: string | number },
   ) => void | Promise<void>;
   Language?: number;
   isReadOnly?: boolean;
+
+  // New optional props for copied LMV2 components compatibility
+  prefilled?: any;
+  disabled?: boolean;
+  hideSubmitButton?: boolean;
 }
 
 const API_BASE = process.env.LO_API_KEY || "https://demo.finnovator.com.sa:8011";
@@ -92,6 +97,9 @@ export default function GenericCardForm({
   onSubmit: onSubmitExternal, // ✅ added
   Language = 1,
   isReadOnly = false,
+  prefilled,
+  disabled = false,
+  hideSubmitButton = false,
 }: GenericCardFormProps) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -103,6 +111,27 @@ export default function GenericCardForm({
   const { reset } = form;
 
   useEffect(() => {
+    if (prefilled) {
+      const normalized: AnyFormValues = {};
+      formFields.forEach((f) => {
+        let v = prefilled?.[f.name];
+        if (isDateString(v)) {
+          v = formatDateKSA(v);
+        }
+        const isNullOrEmpty =
+          v === null || v === undefined || String(v).trim() === "" || String(v) === "null";
+        normalized[f.name] =
+          f.type === "switch"
+            ? v === 1 || v === true || v === "1"
+            : isNullOrEmpty
+              ? "-"
+              : v;
+      });
+      reset(normalized);
+      setLoading(false);
+      return;
+    }
+
     if (!id) {
       setLoading(false);
       return;
@@ -172,7 +201,7 @@ export default function GenericCardForm({
       let request: any = {
         ...(baseRecord ?? {}),
         ...values,
-        [idParamName]: id,
+        [idParamName]: id ?? "",
         Language: Language,
       };
 
@@ -190,7 +219,7 @@ export default function GenericCardForm({
         request = transformRequest(request, baseRecord);
       }
 
-      await axios.put(`${API_BASE}${apiEndpoint}/${id}`, request);
+      await axios.put(`${API_BASE}${apiEndpoint}/${id ?? ""}`, request);
 
       toast.success("Saved successfully");
       setSuccess("Saved successfully");
@@ -260,9 +289,9 @@ export default function GenericCardForm({
                               field.onChange(val);
                               cfg.onChange?.(val);
                             }}
-                            disabled={saving || isReadOnly}
+                            disabled={saving || isReadOnly || disabled}
                           >
-                            <SelectTrigger className={`h-9 text-sm w-full ${isReadOnly ? "disabled:opacity-100 disabled:text-slate-900 font-semibold dark:disabled:text-slate-50" : ""}`}>
+                            <SelectTrigger className={`h-9 text-sm w-full ${isReadOnly || disabled ? "disabled:opacity-100 disabled:text-slate-900 font-semibold dark:disabled:text-slate-50" : ""}`}>
                               <SelectValue placeholder="Select..." />
                             </SelectTrigger>
                             <SelectContent>
@@ -283,9 +312,9 @@ export default function GenericCardForm({
                               field.onChange(e);
                               cfg.onChange?.(e.target.value);
                             }}
-                            disabled={saving || isReadOnly}
+                            disabled={saving || isReadOnly || disabled}
                             placeholder={cfg.placeholder}
-                            className={`min-h-17.5 resize-none text-sm ${isReadOnly ? "disabled:opacity-100 disabled:text-slate-900 font-semibold dark:disabled:text-slate-50" : ""}`}
+                            className={`min-h-17.5 resize-none text-sm ${isReadOnly || disabled ? "disabled:opacity-100 disabled:text-slate-900 font-semibold dark:disabled:text-slate-50" : ""}`}
                           />
                         ) : cfg.type === "switch" ? (
                           <div className="flex items-center h-9">
@@ -295,7 +324,7 @@ export default function GenericCardForm({
                                 field.onChange(val);
                                 cfg.onChange?.(val);
                               }}
-                              disabled={saving || isReadOnly}
+                              disabled={saving || isReadOnly || disabled}
                             />
                           </div>
                         ) : (
@@ -306,9 +335,9 @@ export default function GenericCardForm({
                               cfg.onChange?.(e.target.value);
                             }}
                             type={cfg.type === "number" ? "number" : "text"}
-                            disabled={saving || isReadOnly}
+                            disabled={saving || isReadOnly || disabled}
                             placeholder={cfg.placeholder}
-                            className={`h-9 text-sm ${isReadOnly ? "disabled:opacity-100 disabled:text-slate-900 font-semibold dark:disabled:text-slate-50" : ""}`}
+                            className={`h-9 text-sm ${isReadOnly || disabled ? "disabled:opacity-100 disabled:text-slate-900 font-semibold dark:disabled:text-slate-50" : ""}`}
                           />
                         )}
                       </FormControl>
@@ -320,7 +349,7 @@ export default function GenericCardForm({
               />
             ))}
 
-            {!isReadOnly && (
+            {!isReadOnly && !hideSubmitButton && (
               <div className="col-span-full flex justify-end pt-4">
                 <button
                   type="submit"
