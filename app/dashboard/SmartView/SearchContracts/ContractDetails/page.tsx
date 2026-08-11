@@ -3,36 +3,56 @@
 import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, User, FileText, DollarSign, Activity, CheckCircle, ShieldAlert } from "lucide-react";
-import axios from "@/utils/axios";
 import { dashboardParams, languageParams } from "@/lib/redux/slices/dashboardApplSlice";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  ArrowLeft,
+  User,
+  MapPin,
+  Briefcase,
+  Landmark,
+  Box,
+  BarChart3,
+  FileText,
+  Wallet,
+  CreditCard,
+  History,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
+
+// Components
+import ContractList from "./components/ContractList";
+import FinancialSummary from "./components/FinancialSummary";
+import CustomerDetails from "./components/CustomerDetails";
+import AddressDetails from "./components/AddressDetails";
+import EmploymentDetails from "./components/EmploymentDetails";
+import IncomeDetails from "./components/IncomeDetails";
+import LiabilitiesDetails from "./components/LiabilitiesDetails";
+import BankDetails from "./components/BankDetails";
+import AssetDetails from "./components/AssetDetails";
+import AuditTrail from "./components/AuditTrail";
+import ContractDashboard from "./components/ContractDashboard";
 
 export default function ContractDetailsPage() {
   const router = useRouter();
   const reduxParams = useSelector(dashboardParams);
   const selectedLanguage = useSelector(languageParams);
 
-  const [loading, setLoading] = useState(true);
-  const [summaryData, setSummaryData] = useState<Record<string, any> | null>(null);
   const [cifId, setCifId] = useState<number | string>(1);
-  const [language, setLanguage] = useState<number>(1);
+  const [activeTab, setActiveTab] = useState("contracts");
+  const [selectedLoan, setSelectedLoan] = useState<any>(null);
 
   useEffect(() => {
     let activeCifId: number | string = 1;
-    let activeLang: number = selectedLanguage === "ar" ? 2 : 1;
 
     if (reduxParams && (reduxParams.CIFID || reduxParams.CifId)) {
       activeCifId = reduxParams.CIFID || reduxParams.CifId;
-      if (reduxParams.language) activeLang = reduxParams.language;
     } else {
       const saved = localStorage.getItem("searchContractParams");
       if (saved) {
         try {
           const parsed = JSON.parse(saved);
           if (parsed.CIFID || parsed.CifId) activeCifId = parsed.CIFID || parsed.CifId;
-          if (parsed.language) activeLang = parsed.language;
         } catch (e) {
           console.error("Error parsing saved params", e);
         }
@@ -40,178 +60,167 @@ export default function ContractDetailsPage() {
     }
 
     setCifId(activeCifId);
-    setLanguage(activeLang);
-
-    const fetchCustomerSummary = async () => {
-      setLoading(true);
-      try {
-        const hostUrl = process.env.HOST_API_KEY;
-        const response = await axios.get(
-          `${hostUrl}/api/Customer/get-CustomerSummary`,
-          {
-            params: {
-              CIFID: activeCifId,
-              language: activeLang,
-            },
-          }
-        );
-
-        const data = response.data;
-        if (Array.isArray(data)) {
-          setSummaryData(data[0] || {});
-        } else if (data && typeof data === "object") {
-          setSummaryData(data);
-        } else {
-          setSummaryData({});
-        }
-      } catch (err) {
-        console.error("Error fetching Customer Summary:", err);
-        toast.error("Failed to load customer summary details");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchCustomerSummary();
   }, [reduxParams, selectedLanguage]);
 
+  const tabs = [
+    {
+      id: "contracts",
+      label: "Contract List",
+      icon: FileText,
+      component: ({ cifId }: { cifId: string }) => (
+        <ContractList cifId={cifId} onSelectLoan={setSelectedLoan} />
+      ),
+    },
+    {
+      id: "summary",
+      label: "Financial Summary",
+      icon: BarChart3,
+      component: FinancialSummary,
+    },
+    {
+      id: "customer",
+      label: "Customer Details",
+      icon: User,
+      component: CustomerDetails,
+    },
+    {
+      id: "address",
+      label: "Address Details",
+      icon: MapPin,
+      component: AddressDetails,
+    },
+    {
+      id: "employment",
+      label: "Employment Details",
+      icon: Briefcase,
+      component: EmploymentDetails,
+    },
+    {
+      id: "income",
+      label: "Income Details",
+      icon: Wallet,
+      component: IncomeDetails,
+    },
+    {
+      id: "liabilities",
+      label: "Liabilities Details",
+      icon: CreditCard,
+      component: LiabilitiesDetails,
+    },
+    {
+      id: "bank",
+      label: "Bank Details",
+      icon: Landmark,
+      component: BankDetails,
+    },
+    {
+      id: "assets",
+      label: "Asset and Commodity Details",
+      icon: Box,
+      component: AssetDetails,
+    },
+    { id: "audit", label: "Audit Trail", icon: History, component: AuditTrail },
+  ];
+
+  if (selectedLoan) {
+    return (
+      <div className="relative min-h-screen p-4 md:p-6 space-y-6 overflow-hidden bg-slate-50/50 dark:bg-slate-950/50">
+        <div className="absolute top-0 right-0 -mr-24 -mt-24 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute bottom-0 left-0 -ml-24 -mb-24 w-96 h-96 bg-sky-500/10 rounded-full blur-3xl animate-pulse" />
+        
+        <div className="relative z-10 bg-white/40 dark:bg-slate-900/40 backdrop-blur-sm rounded-[2.5rem] border border-white dark:border-slate-800 shadow-2xl overflow-hidden min-h-[85vh]">
+          <ContractDashboard 
+            loanData={selectedLoan} 
+            onBack={() => setSelectedLoan(null)} 
+          />
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex flex-col gap-8 p-6 lg:p-10 min-h-screen bg-gray-50/50 dark:bg-[#0a0a0a] font-sans">
-      {/* Top Navigation */}
-      <div className="flex items-center justify-between gap-4">
+    <div className="relative min-h-screen p-4 md:p-6 space-y-6 overflow-hidden bg-slate-50/50 dark:bg-slate-950/50">
+      {/* Premium Background Decoration */}
+      <div className="absolute top-0 right-0 -mr-24 -mt-24 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl animate-pulse" />
+      <div className="absolute bottom-0 left-0 -ml-24 -mb-24 w-96 h-96 bg-sky-500/10 rounded-full blur-3xl animate-pulse" />
+
+      {/* Ultra-Compact Glassmorphic Header */}
+      <div className="relative z-10 flex items-center justify-between backdrop-blur-md bg-white/70 dark:bg-slate-900/70 py-4 px-6 rounded-[1.5rem] border border-white dark:border-slate-800 shadow-xl shadow-indigo-500/5 transition-all duration-500">
         <div className="flex items-center gap-4">
           <Button
-            variant="outline"
-            size="sm"
+            variant="ghost"
+            size="icon"
             onClick={() => router.push("/dashboard/SmartView/SearchContracts")}
-            className="h-10 px-4 rounded-xl border-gray-200 dark:border-gray-800 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all flex items-center gap-2 cursor-pointer"
+            className="rounded-xl h-10 w-10 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm hover:scale-105 transition-all duration-300"
           >
-            <ArrowLeft className="w-4 h-4" />
-            Back to Search Contracts
+            <ArrowLeft className="h-5 w-5 text-indigo-600" />
           </Button>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-              Contract Details
-            </h1>
-            <p className="text-xs text-gray-500 dark:text-gray-400">
-              Customer Summary for CIF ID #{cifId}
+            <div className="flex items-center gap-2.5">
+              <h1 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">
+                Contract Details
+              </h1>
+              <span className="px-3 py-1 rounded-full bg-indigo-600 text-white text-[11px] font-black shadow-md">
+                #{cifId}
+              </span>
+            </div>
+            <p className="text-[10px] text-slate-400 font-black tracking-[0.15em] uppercase mt-0.5 opacity-80">
+              Customer Portfolio • Comprehensive View
             </p>
           </div>
         </div>
-        <div className="px-3 py-1.5 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs font-semibold">
-          Language: {language === 2 ? "Arabic" : "English"}
+
+        <div className="hidden md:flex items-center gap-2">
+          <div className="px-4 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800/30 flex items-center gap-2">
+            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="text-[10px] font-black text-emerald-700 dark:text-emerald-400 uppercase tracking-widest">
+              Verified
+            </span>
+          </div>
         </div>
       </div>
 
-      {loading ? (
-        <div className="flex h-64 items-center justify-center">
-          <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+      {/* Main Content with Premium Compact Tabs */}
+      <Tabs
+        value={activeTab}
+        onValueChange={setActiveTab}
+        className="relative z-10 space-y-6"
+      >
+        <div className="backdrop-blur-md bg-slate-200/50 dark:bg-slate-800/30 p-1 rounded-2xl border border-white/20 dark:border-slate-700/50 shadow-inner">
+          <TabsList className="flex flex-row w-full items-center justify-between bg-transparent h-auto p-0.5 gap-0.5">
+            {tabs.map((tab) => (
+              <TabsTrigger
+                key={tab.id}
+                value={tab.id}
+                className="flex-1 gap-2 px-1 py-2 text-[11px] font-black whitespace-nowrap rounded-xl transition-all duration-500
+                  data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 
+                  data-[state=active]:text-indigo-600 data-[state=active]:shadow-md
+                  data-[state=active]:scale-[1.02]
+                  text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400"
+              >
+                <tab.icon
+                  className={`h-3 w-3 transition-transform duration-500 ${activeTab === tab.id ? "scale-110" : ""}`}
+                />
+                {tab.label}
+              </TabsTrigger>
+            ))}
+          </TabsList>
         </div>
-      ) : summaryData ? (
-        <>
-          {/* Key KPI Header Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="relative group rounded-2xl p-[1px] bg-gradient-to-b from-blue-200 to-transparent dark:from-blue-900/40">
-              <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl rounded-[15px] p-5 flex items-center gap-4">
-                <div className="p-3 bg-blue-50 dark:bg-blue-900/30 rounded-xl text-blue-600 dark:text-blue-400">
-                  <User className="w-6 h-6" />
-                </div>
-                <div>
-                  <p className="text-xs font-medium text-gray-500 dark:text-gray-400">
-                    Customer Name
-                  </p>
-                  <p className="text-lg font-bold text-gray-900 dark:text-white truncate">
-                    {summaryData.CUSTOMERNAME || summaryData.CUSTOMERFULLNAME || summaryData.NAME || "—"}
-                  </p>
-                </div>
-              </div>
-            </div>
 
-            <div className="relative group rounded-2xl p-[1px] bg-gradient-to-b from-indigo-200 to-transparent dark:from-indigo-900/40">
-              <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl rounded-[15px] p-5 flex items-center gap-4">
-                <div className="p-3 bg-indigo-50 dark:bg-indigo-900/30 rounded-xl text-indigo-600 dark:text-indigo-400">
-                  <FileText className="w-6 h-6" />
-                </div>
-                <div>
-                  <p className="text-xs font-medium text-gray-500 dark:text-gray-400">
-                    CIF ID
-                  </p>
-                  <p className="text-lg font-bold text-gray-900 dark:text-white">
-                    {summaryData.CIFID || cifId}
-                  </p>
-                </div>
+        <div className="relative">
+          {tabs.map((tab) => (
+            <TabsContent
+              key={tab.id}
+              value={tab.id}
+              className="animate-in fade-in zoom-in-95 slide-in-from-bottom-5 duration-700 outline-none"
+            >
+              <div className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-sm rounded-[2rem] border border-white dark:border-slate-800 shadow-2xl overflow-hidden min-h-[400px]">
+                <tab.component cifId={String(cifId)} />
               </div>
-            </div>
-
-            <div className="relative group rounded-2xl p-[1px] bg-gradient-to-b from-emerald-200 to-transparent dark:from-emerald-900/40">
-              <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl rounded-[15px] p-5 flex items-center gap-4">
-                <div className="p-3 bg-emerald-50 dark:bg-emerald-900/30 rounded-xl text-emerald-600 dark:text-emerald-400">
-                  <DollarSign className="w-6 h-6" />
-                </div>
-                <div>
-                  <p className="text-xs font-medium text-gray-500 dark:text-gray-400">
-                    Total Overdue
-                  </p>
-                  <p className="text-lg font-bold text-gray-900 dark:text-white">
-                    {summaryData.TOTALOVERDUEAMOUNT ?? summaryData.TOTALOVERDUE ?? "0.00"}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="relative group rounded-2xl p-[1px] bg-gradient-to-b from-purple-200 to-transparent dark:from-purple-900/40">
-              <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl rounded-[15px] p-5 flex items-center gap-4">
-                <div className="p-3 bg-purple-50 dark:bg-purple-900/30 rounded-xl text-purple-600 dark:text-purple-400">
-                  <Activity className="w-6 h-6" />
-                </div>
-                <div>
-                  <p className="text-xs font-medium text-gray-500 dark:text-gray-400">
-                    Status
-                  </p>
-                  <p className="text-lg font-bold text-gray-900 dark:text-white">
-                    {summaryData.STATUS || summaryData.RECSTATUS || "Active"}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Customer Summary Details Grid */}
-          <div className="relative group rounded-3xl p-[1px] bg-gradient-to-b from-gray-200 to-transparent dark:from-gray-800 transition-all duration-500 hover:shadow-[0_0_40px_-10px_rgba(15,142,221,0.15)]">
-            <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-2xl rounded-[23px] p-6 lg:p-8 border border-white/40 dark:border-gray-700/30 shadow-[inset_0_1px_1px_rgba(255,255,255,0.4)]">
-              <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-6 border-b border-gray-100 dark:border-gray-800 pb-3">
-                Detailed Summary Information
-              </h2>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {Object.entries(summaryData).map(([key, val]) => (
-                  <div
-                    key={key}
-                    className="p-4 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-800/60 flex flex-col gap-1"
-                  >
-                    <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                      {key.replace(/_/g, " ")}
-                    </span>
-                    <span className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
-                      {val === null || val === undefined || String(val).trim() === ""
-                        ? "—"
-                        : typeof val === "boolean"
-                          ? val
-                            ? "Yes"
-                            : "No"
-                          : String(val)}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </>
-      ) : (
-        <div className="p-8 text-center text-gray-500">
-          No customer summary details found for CIF ID #{cifId}.
+            </TabsContent>
+          ))}
         </div>
-      )}
+      </Tabs>
     </div>
   );
 }
