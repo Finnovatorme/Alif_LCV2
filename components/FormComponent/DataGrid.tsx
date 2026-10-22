@@ -507,11 +507,11 @@ export function ReusableDataTable<T extends Record<string, any>>(
   };
 
   return (
-    <div className="bg-sidebar p-4 rounded-lg flex flex-col items-center gap-4">
-      {title && (
-        <div className="w-full flex items-center justify-between mb-3">
-          <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200">
-            {title}
+    <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md p-6 rounded-[2rem] border border-slate-200/80 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow duration-300 flex flex-col items-center gap-5">
+      {(title || headerActions) && (
+        <div className="w-full flex items-center justify-between mb-2">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">
+            {title || ""}
           </h2>
           {headerActions && (
             <div className="flex items-center gap-2">{headerActions}</div>
@@ -662,7 +662,7 @@ export function ReusableDataTable<T extends Record<string, any>>(
         </Button>
       </div>
 
-      <div className="w-full overflow-hidden rounded-lg border border-gray-300 dark:border-gray-700 shadow-sm bg-white dark:bg-[#121212]">
+      <div className="w-full overflow-hidden rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-white dark:bg-[#121212]">
         <DndContext
           collisionDetection={closestCenter}
           modifiers={[restrictToVerticalAxis]}
@@ -773,6 +773,7 @@ export function ReusableDataTable<T extends Record<string, any>>(
         isOpen={viewModalOpen}
         onClose={() => setViewModalOpen(false)}
         data={selectedRow}
+        title={title ? `${title} Details` : "Record Details"}
         keyMappings={keyMappings}
       />
 

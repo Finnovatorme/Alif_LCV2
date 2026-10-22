@@ -25,7 +25,7 @@ export default function ProductsPieChart({ title = "Products", data }: ProductsP
     : [{ id: -1, label: "No Data", value: 1, isEmpty: true }];
 
   return (
-    <Card className="flex flex-col h-full min-h-[220px] bg-white dark:bg-gray-900 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 dark:border-gray-800 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
+    <Card className="flex flex-col h-full min-h-[220px] bg-white dark:bg-gray-900 rounded-3xl border border-gray-100 dark:border-gray-800 transition-all duration-300 shadow-sm hover:shadow-md">
       <CardHeader className="p-0 pt-5 pb-2 items-center flex-none">
         <CardTitle className="text-sm font-bold text-gray-500 dark:text-gray-400 text-center tracking-wider uppercase">{title}</CardTitle>
       </CardHeader>

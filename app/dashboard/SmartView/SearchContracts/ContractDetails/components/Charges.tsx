@@ -29,7 +29,9 @@ export default function Charges({ loanId, cifId }: { loanId: string; cifId: stri
         setLoading(false);
       }
     };
-    fetchData();
+    if (loanId || cifId) {
+      fetchData();
+    }
   }, [loanId, cifId, language]);
 
   const keyMappings = {
@@ -64,7 +66,7 @@ export default function Charges({ loanId, cifId }: { loanId: string; cifId: stri
   ];
 
   return (
-    <div className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-md rounded-[2rem] border border-white dark:border-slate-800 shadow-xl overflow-hidden animate-in fade-in duration-500">
+    <div className="animate-in fade-in duration-500">
       <ReusableDataTable
         title="Contract Charges"
         initialData={data}

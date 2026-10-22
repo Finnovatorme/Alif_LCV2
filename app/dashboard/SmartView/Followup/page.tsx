@@ -245,16 +245,12 @@ export default function FollowupPage() {
                 </div>
             </div>
 
-            {/* Results Data Table Container */}
-            <div className="relative group rounded-3xl p-[1px] bg-gradient-to-b from-gray-200 to-transparent dark:from-gray-800 transition-all duration-500 hover:shadow-[0_0_40px_-10px_rgba(15,142,221,0.15)]">
-                <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-2xl rounded-[23px] p-6 lg:p-8 border border-white/40 dark:border-gray-700/30 shadow-[inset_0_1px_1px_rgba(255,255,255,0.4)]">
-                    <ReusableDataTable
-                        initialData={tableRows}
-                        columns={tableColumns}
-                        loading={loading}
-                    />
-                </div>
-            </div>
+            {/* Results Data Table */}
+            <ReusableDataTable
+                initialData={tableRows}
+                columns={tableColumns}
+                loading={loading}
+            />
         </div>
     );
 }

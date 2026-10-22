@@ -149,52 +149,46 @@ export default function Page() {
         />
       </div>
 
-      <div className="flex flex-col gap-10">
-        <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 lg:gap-12">
+      <div className="flex flex-col gap-8">
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
           {/* Table Container 1 */}
-          <div className="xl:col-span-7 relative group rounded-3xl p-[1px] bg-gradient-to-b from-gray-200 to-transparent dark:from-gray-800 transition-all duration-500 hover:shadow-[0_0_40px_-10px_rgba(15,142,221,0.15)]">
-            <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-2xl rounded-[23px] p-6 lg:p-8 h-full border border-white/40 dark:border-gray-700/30 flex flex-col shadow-[inset_0_1px_1px_rgba(255,255,255,0.4)]">
-              <ReusableDataTable
-                title="Pending Followup"
-                initialData={followUp.PENDING_FOLLOWUP || []}
-                columns={columns}
-                loading={dashboardLoading}
-              />
-            </div>
+          <div className="xl:col-span-7">
+            <ReusableDataTable
+              title="Pending Followup"
+              initialData={followUp.PENDING_FOLLOWUP || []}
+              columns={columns}
+              loading={dashboardLoading}
+            />
           </div>
           <div className="xl:col-span-5">
             <BarChartComponent title="Customer Distribution By Group" />
           </div>
         </div>
 
-        <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 lg:gap-12">
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
           {/* Table Container 2 */}
-          <div className="xl:col-span-7 relative group rounded-3xl p-[1px] bg-gradient-to-b from-gray-200 to-transparent dark:from-gray-800 transition-all duration-500 hover:shadow-[0_0_40px_-10px_rgba(15,142,221,0.15)]">
-            <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-2xl rounded-[23px] p-6 lg:p-8 h-full border border-white/40 dark:border-gray-700/30 flex flex-col shadow-[inset_0_1px_1px_rgba(255,255,255,0.4)]">
-              <ReusableDataTable
-                title="Completed Followup"
-                initialData={followUp.COMPLETE_FOLLOWUP || []}
-                columns={columns}
-                loading={dashboardLoading}
-              />
-            </div>
+          <div className="xl:col-span-7">
+            <ReusableDataTable
+              title="Completed Followup"
+              initialData={followUp.COMPLETE_FOLLOWUP || []}
+              columns={columns}
+              loading={dashboardLoading}
+            />
           </div>
           <div className="xl:col-span-5">
             <HorizontalBarChartComponent title="Collection Performance" />
           </div>
         </div>
 
-        <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 lg:gap-12">
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
           {/* Table Container 3 */}
-          <div className="xl:col-span-7 relative group rounded-3xl p-[1px] bg-gradient-to-b from-gray-200 to-transparent dark:from-gray-800 transition-all duration-500 hover:shadow-[0_0_40px_-10px_rgba(15,142,221,0.15)]">
-            <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-2xl rounded-[23px] p-6 lg:p-8 h-full border border-white/40 dark:border-gray-700/30 flex flex-col shadow-[inset_0_1px_1px_rgba(255,255,255,0.4)]">
-              <ReusableDataTable
-                title="Escalated Followup"
-                initialData={followUp.ESCALATED_CASES || []}
-                columns={columns}
-                loading={dashboardLoading}
-              />
-            </div>
+          <div className="xl:col-span-7">
+            <ReusableDataTable
+              title="Escalated Followup"
+              initialData={followUp.ESCALATED_CASES || []}
+              columns={columns}
+              loading={dashboardLoading}
+            />
           </div>
           <div className="xl:col-span-5">
             <FollowupStatusChart title="Follow-up Status Distribution" />

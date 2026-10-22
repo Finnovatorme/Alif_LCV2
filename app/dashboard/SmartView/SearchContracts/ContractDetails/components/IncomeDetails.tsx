@@ -5,7 +5,7 @@ import { useSelector } from "react-redux";
 import { ReusableDataTable } from "@/components/FormComponent/DataGrid";
 import { ColumnDef } from "@tanstack/react-table";
 import { Wallet } from "lucide-react";
-import { getCustomerDetails } from "../../HandlingAPIs";
+import { getCustomerIncome, getCustomerDetails } from "../../HandlingAPIs";
 import { languageParams } from "@/lib/redux/slices/dashboardApplSlice";
 import { toast } from "sonner";
 
@@ -18,15 +18,29 @@ export default function IncomeDetails({ cifId }: { cifId: string }) {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const response = await getCustomerDetails({ CIFID: cifId, language });
-        setData(response?.CustomerIncome || []);
+        const response = await getCustomerIncome({ CIFID: cifId, language });
+        let incomeList: any[] = [];
+        if (Array.isArray(response) && response.length > 0) {
+          incomeList = response;
+        } else if (response?.CustomerIncome && Array.isArray(response.CustomerIncome)) {
+          incomeList = response.CustomerIncome;
+        } else if (response?.data && Array.isArray(response.data)) {
+          incomeList = response.data;
+        } else {
+          // Fallback to getCustomerDetails if getCustomerIncome returns empty
+          const fallbackRes = await getCustomerDetails({ CIFID: cifId, language });
+          incomeList = fallbackRes?.CustomerIncome || (Array.isArray(fallbackRes) ? fallbackRes : []);
+        }
+        setData(incomeList);
       } catch (error) {
         toast.error("Failed to fetch income details");
       } finally {
         setLoading(false);
       }
     };
-    fetchData();
+    if (cifId) {
+      fetchData();
+    }
   }, [cifId, language]);
   
   const columns: ColumnDef<any>[] = [

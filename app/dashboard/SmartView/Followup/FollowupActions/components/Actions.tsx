@@ -1,11 +1,12 @@
 "use client";
 
 import React, { useState } from "react";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import { useRouter } from "next/navigation";
 import { Phone, MessageSquare, MessageCircle, Mail, ArrowLeft, X, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { dashboardParams } from "@/lib/redux/slices/dashboardApplSlice";
+import { dashboardParams, hasDashabordParams } from "@/lib/redux/slices/dashboardApplSlice";
+import { setSelectedUserId } from "@/lib/redux/slices/userTabSlice";
 
 import { FollowUpModal } from "./FollowUpModal";
 
@@ -17,7 +18,27 @@ interface ActionsProps {
 
 export const Actions: React.FC<ActionsProps> = ({ cifId, customerDetails, followupDetails }) => {
   const router = useRouter();
+  const dispatch = useDispatch();
   const smartView = useSelector(dashboardParams);
+
+  const handleSmartViewClick = () => {
+    const targetCifId = cifId || customerDetails?.CIFID || followupDetails?.CIFID || smartView?.CIFID || 1;
+    const lang = smartView?.language || 1;
+
+    const payload = {
+      ...smartView,
+      ...customerDetails,
+      ...followupDetails,
+      CIFID: targetCifId,
+      language: lang,
+    };
+
+    dispatch(hasDashabordParams(payload));
+    dispatch(setSelectedUserId(Number(targetCifId)));
+    localStorage.setItem("searchContractParams", JSON.stringify(payload));
+
+    router.push("/dashboard/SmartView/SearchContracts/ContractDetails");
+  };
 
   const [openCallModal, setOpenCallModal] = useState(false);
   const [openCommunicationModal, setOpenCommunicationModal] = useState(false);
@@ -191,7 +212,8 @@ export const Actions: React.FC<ActionsProps> = ({ cifId, customerDetails, follow
           <div className="flex items-center gap-3">
             <Button
               variant="outline"
-              className="h-10 px-4 rounded-xl border-blue-600 dark:border-blue-500 text-blue-600 dark:text-blue-400 bg-white dark:bg-gray-800 hover:bg-blue-50 dark:hover:bg-blue-900/30 text-xs font-semibold cursor-pointer shadow-xs"
+              onClick={handleSmartViewClick}
+              className="h-10 px-4 rounded-xl border-blue-600 dark:border-blue-500 text-blue-600 dark:text-blue-400 bg-white dark:bg-gray-800 hover:bg-blue-50 dark:hover:bg-blue-900/30 text-xs font-semibold cursor-pointer shadow-xs transition-all active:scale-95"
             >
               Smart View
             </Button>

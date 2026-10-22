@@ -18,15 +18,34 @@ export default function CustomerDetails({ cifId }: { cifId: string }) {
       setLoading(true);
       try {
         const response = await getCustomerDetails({ CIFID: cifId, language });
-        const details = response?.CustomerDetail?.[0] || null;
-        setData(details);
+        const rawDetails =
+          response?.CustomerDetail?.[0] ||
+          (Array.isArray(response?.CustomerDetail) ? response.CustomerDetail[0] : response?.CustomerDetail) ||
+          response?.CustomerDetails?.[0] ||
+          (Array.isArray(response?.CustomerDetails) ? response.CustomerDetails[0] : response?.CustomerDetails) ||
+          (Array.isArray(response?.data?.CustomerDetail) ? response.data.CustomerDetail[0] : response?.data?.CustomerDetail) ||
+          (Array.isArray(response?.data) ? response.data[0] : response?.data) ||
+          (Array.isArray(response) ? response[0] : response);
+
+        if (rawDetails && typeof rawDetails === "object" && !rawDetails.error) {
+          // Normalize keys so field matching works seamlessly for uppercase property names
+          const normalized: Record<string, any> = { ...rawDetails };
+          Object.keys(rawDetails).forEach((key) => {
+            normalized[key.toUpperCase()] = rawDetails[key];
+          });
+          setData(normalized);
+        } else {
+          setData(null);
+        }
       } catch (error) {
         toast.error("Failed to fetch customer details");
       } finally {
         setLoading(false);
       }
     };
-    fetchData();
+    if (cifId) {
+      fetchData();
+    }
   }, [cifId, language]);
 
   const fields: FieldConfig[] = [
@@ -43,20 +62,6 @@ export default function CustomerDetails({ cifId }: { cifId: string }) {
     { name: "QUALIFICATIONTYPE", label: "Qualification", type: "input", disabled: true },
     { name: "CUSTOMERCATEGORY", label: "Customer Category", type: "input", disabled: true },
     { name: "INCOMEBRACKET", label: "Income Bracket", type: "number", disabled: true },
-    // { name: "COMPREGCATEGORY", label: "Comp. Reg. Category", type: "input", disabled: true },
-    // { name: "CUSTOMERSEGMENT", label: "Customer Segment", type: "input", disabled: true },
-    // { name: "ECONOMYSECTOR", label: "Economy Sector", type: "input", disabled: true },
-    // { name: "COMPANYINDUSTRY", label: "Company Industry", type: "input", disabled: true },
-    // { name: "BUSINESSACTIVITY", label: "Business Activity", type: "input", disabled: true },
-    // { name: "REGISTRATIONCOUNTRY", label: "Reg. Country", type: "input", disabled: true },
-    // { name: "REGISTRATIONCITY", label: "Reg. City", type: "input", disabled: true },
-    // { name: "BUSINESSVATNO", label: "Business VAT No", type: "number", disabled: true },
-    // { name: "BUSGROUPVATNO", label: "Bus. Group VAT No", type: "number", disabled: true },
-    // { name: "PAIDUPCAPITAL", label: "Paid-up Capital", type: "number", disabled: true },
-    // { name: "ESTABLISHMENTDATE_G", label: "Estab. Date (G)", type: "input", disabled: true },
-    // { name: "ESTABLISHMENTDATE_H", label: "Estab. Date (H)", type: "input", disabled: true },
-    // { name: "REVENUECATEGORY", label: "Revenue Category", type: "input", disabled: true },
-    // { name: "ANNUALREVENUE", label: "Annual Revenue", type: "number", disabled: true },
     { name: "CUSTOMERRATING", label: "Customer Rating", type: "input", disabled: true },
     { name: "SALARYCREDITTOBANK", label: "Salary Credit to Bank", type: "input", disabled: true },
     { name: "REFERREDBY", label: "Referred By", type: "input", disabled: true },
@@ -67,6 +72,15 @@ export default function CustomerDetails({ cifId }: { cifId: string }) {
     { name: "REMARKS", label: "Remarks", type: "input", disabled: true },
   ];
 
+  if (loading) {
+    return (
+      <div className="p-8 text-center bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">
+        <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-indigo-600 border-t-transparent"></div>
+        <p className="mt-2 text-sm text-slate-500 font-medium">Loading customer details...</p>
+      </div>
+    );
+  }
+
   return (
     <GenericCardForm
       title="Personal Information"
@@ -74,7 +88,6 @@ export default function CustomerDetails({ cifId }: { cifId: string }) {
       prefilled={data}
       disabled={true}
       hideSubmitButton={true}
-      
       icon={User}
     />
   );

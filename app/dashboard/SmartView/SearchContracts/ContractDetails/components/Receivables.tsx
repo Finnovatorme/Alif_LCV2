@@ -43,7 +43,9 @@ export default function Receivables({
         setLoading(false);
       }
     };
-    fetchData();
+    if (loanId || cifId) {
+      fetchData();
+    }
   }, [loanId, cifId, language]);
 
   const keyMappings = {
@@ -91,7 +93,7 @@ export default function Receivables({
         const isPaid = getValue() === "Y" || getValue() === "Yes" || getValue() === 1;
         return (
           <span
-            className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-[11px] font-black uppercase tracking-wider transition-all duration-300 border ${
+            className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider transition-all duration-300 border ${
               isPaid
                 ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.15)] dark:bg-emerald-500/20 dark:text-emerald-400 dark:border-emerald-500/30"
                 : "bg-rose-500/10 text-rose-600 border-rose-500/20 shadow-[0_0_15px_rgba(244,63,94,0.15)] dark:bg-rose-500/20 dark:text-rose-400 dark:border-rose-500/30"
@@ -109,7 +111,7 @@ export default function Receivables({
   ];
 
   return (
-    <div className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-md rounded-[2rem] border border-white dark:border-slate-800 shadow-xl overflow-hidden animate-in fade-in duration-500">
+    <div className="animate-in fade-in duration-500">
       <ReusableDataTable
         title="Contract Receivables"
         initialData={data}

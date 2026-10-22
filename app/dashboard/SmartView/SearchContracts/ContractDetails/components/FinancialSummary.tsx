@@ -112,13 +112,13 @@ function StatCard({ label, value, icon: Icon, color }: { label: string; value: a
   };
 
   return (
-    <div className={`relative overflow-hidden group p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl transition-all duration-500 hover:scale-[1.02]`}>
+    <div className={`relative overflow-hidden group p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm transition-all duration-300 hover:shadow-md`}>
       <div className={`absolute top-0 right-0 w-20 h-20 bg-gradient-to-br ${colorMap[color].split(' ')[0]} ${colorMap[color].split(' ')[1]} opacity-[0.03] rounded-full -mr-8 -mt-8`} />
       <div className="flex flex-col gap-1">
-        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{label}</span>
+        <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">{label}</span>
         <div className="flex items-center justify-between mt-2">
-          <span className="text-2xl font-black text-slate-900 dark:text-white">{value || "0"}</span>
-          <div className={`p-2.5 rounded-xl bg-gradient-to-br ${colorMap[color].split(' ')[0]} ${colorMap[color].split(' ')[1]} shadow-lg ${colorMap[color].split(' ')[2]}`}>
+          <span className="text-2xl font-bold text-slate-900 dark:text-white">{value || "0"}</span>
+          <div className={`p-2.5 rounded-xl bg-gradient-to-br ${colorMap[color].split(' ')[0]} ${colorMap[color].split(' ')[1]} shadow-md`}>
             <Icon className="w-5 h-5 text-white" />
           </div>
         </div>
@@ -129,12 +129,12 @@ function StatCard({ label, value, icon: Icon, color }: { label: string; value: a
 
 function SummaryCard({ title, icon: Icon, children }: { title: string; icon: any; children: React.ReactNode }) {
   return (
-    <div className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-md rounded-[2.5rem] border border-white dark:border-slate-800 p-8 shadow-xl transition-all duration-500 hover:shadow-indigo-500/5">
+    <div className="bg-white dark:bg-slate-900 rounded-[2rem] border border-slate-200 dark:border-slate-800 p-8 shadow-sm transition-all duration-300 hover:shadow-md">
       <div className="flex items-center gap-3 mb-8">
         <div className="p-2.5 rounded-xl bg-indigo-50 dark:bg-indigo-900/30">
           <Icon className="w-5 h-5 text-indigo-600" />
         </div>
-        <h3 className="text-sm font-black text-slate-800 dark:text-slate-200 uppercase tracking-widest">{title}</h3>
+        <h3 className="text-base font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wide">{title}</h3>
       </div>
       {children}
     </div>
@@ -147,19 +147,19 @@ function Field({ label, value, isAmount, color }: { label: string; value: any; i
     : (value || "-");
 
   const colorClasses: any = {
-    emerald: "text-emerald-600 dark:text-emerald-400",
-    rose: "text-rose-600 dark:text-rose-400",
-    indigo: "text-indigo-600 dark:text-indigo-400",
-    default: "text-slate-700 dark:text-slate-200"
+    emerald: "text-emerald-600 dark:text-emerald-400 font-semibold",
+    rose: "text-rose-600 dark:text-rose-400 font-semibold",
+    indigo: "text-indigo-600 dark:text-indigo-400 font-semibold",
+    default: "text-slate-800 dark:text-slate-200 font-medium"
   };
 
   return (
     <div className="flex flex-col gap-1.5 group/field">
-      <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.12em] ml-1 transition-colors group-hover/field:text-indigo-500">
+      <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider ml-1 transition-colors group-hover/field:text-indigo-500">
         {label}
       </label>
-      <div className="h-10 px-4 flex items-center rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm transition-all duration-300 group-hover/field:border-indigo-200 dark:group-hover/field:border-indigo-900/50">
-        <span className={`text-[13px] font-bold ${color ? colorClasses[color] : colorClasses.default}`}>
+      <div className="h-11 px-4 flex items-center rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm transition-all duration-300 group-hover/field:border-indigo-200 dark:group-hover/field:border-indigo-900/50">
+        <span className={`text-sm ${color ? colorClasses[color] : colorClasses.default}`}>
           {displayValue}
         </span>
       </div>

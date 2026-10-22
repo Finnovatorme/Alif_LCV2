@@ -334,16 +334,13 @@ const page = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between mb-4">
-        <div className="text-2xl font-bold">Targets</div>
-
-        <Button onClick={openAdd} disabled={loading}>
-          Add New Record
-        </Button>
-      </div>
-
       <ReusableDataTable
-        title="Target Records"
+        title="Targets"
+        headerActions={
+          <Button onClick={openAdd} disabled={loading} className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl">
+            Add New Record
+          </Button>
+        }
         loading={loading}
         columns={tableColumns}
         initialData={targetDataState || []}

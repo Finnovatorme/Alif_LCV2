@@ -5,7 +5,11 @@ import { useSelector } from "react-redux";
 import { ReusableDataTable } from "@/components/FormComponent/DataGrid";
 import { ColumnDef } from "@tanstack/react-table";
 import { Calendar, Layers, Box, Eye } from "lucide-react";
-import { getRepaymentSchedule } from "../../HandlingAPIs";
+import {
+  getCustomerContractRepayScheduleConsolidated,
+  getCustomerContractRepayScheduleAssetWise,
+  getRepaymentSchedule,
+} from "../../HandlingAPIs";
 import { languageParams } from "@/lib/redux/slices/dashboardApplSlice";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -21,15 +25,24 @@ export default function RepaymentSchedule({ loanId, cifId }: { loanId: string; c
     const fetchData = async () => {
       setLoading(true);
       try {
-        const response = await getRepaymentSchedule({ LOANID: loanId, CIFID: cifId, language });
-        setData(response);
+        const [consolidatedRes, assetwiseRes] = await Promise.all([
+          getCustomerContractRepayScheduleConsolidated({ LOANID: loanId, CIFID: cifId, language }),
+          getCustomerContractRepayScheduleAssetWise({ LOANID: loanId, CIFID: cifId, language }),
+        ]);
+
+        setData({
+          Consolidated: Array.isArray(consolidatedRes) ? consolidatedRes : (consolidatedRes?.Consolidated || []),
+          AssetWise: Array.isArray(assetwiseRes) ? assetwiseRes : (assetwiseRes?.AssetWise || []),
+        });
       } catch (error) {
         toast.error("Failed to fetch repayment schedule");
       } finally {
         setLoading(false);
       }
     };
-    fetchData();
+    if (loanId || cifId) {
+      fetchData();
+    }
   }, [loanId, cifId, language]);
 
   const consolidatedKeyMappings = {
@@ -99,29 +112,29 @@ export default function RepaymentSchedule({ loanId, cifId }: { loanId: string; c
       <div className="flex items-center gap-2 p-1.5 bg-slate-100 dark:bg-slate-800/50 rounded-2xl w-fit border border-slate-200 dark:border-slate-700 shadow-inner">
         <button
           onClick={() => setActiveSubTab("consolidated")}
-          className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-xs font-black transition-all duration-300 ${
+          className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 ${
             activeSubTab === "consolidated"
-              ? "bg-white dark:bg-slate-900 text-indigo-600 shadow-md scale-[1.02]"
-              : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+              ? "bg-white dark:bg-slate-900 text-indigo-600 shadow-md scale-[1.01]"
+              : "text-slate-600 hover:text-slate-900 dark:hover:text-slate-200"
           }`}
         >
-          <Layers className="w-3.5 h-3.5" />
+          <Layers className="w-4 h-4" />
           Consolidated
         </button>
         <button
           onClick={() => setActiveSubTab("assetwise")}
-          className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-xs font-black transition-all duration-300 ${
+          className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 ${
             activeSubTab === "assetwise"
-              ? "bg-white dark:bg-slate-900 text-indigo-600 shadow-md scale-[1.02]"
-              : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+              ? "bg-white dark:bg-slate-900 text-indigo-600 shadow-md scale-[1.01]"
+              : "text-slate-600 hover:text-slate-900 dark:hover:text-slate-200"
           }`}
         >
-          <Box className="w-3.5 h-3.5" />
+          <Box className="w-4 h-4" />
           Asset Wise
         </button>
       </div>
 
-      <div className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-md rounded-[2rem] border border-white dark:border-slate-800 shadow-xl overflow-hidden">
+      <div className="animate-in fade-in duration-500">
         <ReusableDataTable
           title={activeSubTab === "consolidated" ? "Consolidated Schedule" : "Asset Wise Schedule"}
           initialData={activeSubTab === "consolidated" ? consolidatedData : assetwiseData}

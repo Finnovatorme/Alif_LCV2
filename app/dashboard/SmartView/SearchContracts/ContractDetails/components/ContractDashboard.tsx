@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { ArrowLeft, TrendingUp, Percent, DollarSign, Calendar, FileText, Receipt, History, Wallet, CreditCard, Landmark, Box, Activity } from "lucide-react";
+import { ArrowLeft, TrendingUp, Percent, DollarSign, Calendar, FileText, Receipt, History, Wallet, CreditCard, Landmark, Box, Activity, MapPin, Briefcase } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getCustomerContractDetails } from "../../HandlingAPIs";
@@ -12,6 +12,10 @@ import RepaymentSchedule from "./RepaymentSchedule";
 import Receipts from "./Receipts";
 import Receivables from "./Receivables";
 import Charges from "./Charges";
+import AddressDetails from "./AddressDetails";
+import EmploymentDetails from "./EmploymentDetails";
+import BankDetails from "./BankDetails";
+import AssetDetails from "./AssetDetails";
 import AuditTrail from "./AuditTrail";
 
 interface ContractDashboardProps {
@@ -30,12 +34,23 @@ export default function ContractDashboard({ loanData, onBack }: ContractDashboar
       setLoading(true);
       try {
         const response = await getCustomerContractDetails({
-          LOANID: loanData?.LOANID,
-          CIFID: loanData?.CIFID,
+          LOANID: loanData?.LOANID || loanData?.LoanId || loanData?.id,
+          CIFID: loanData?.CIFID || loanData?.CifId,
           language
         });
-        if (response && response.data && response.data.length > 0) {
-          setFullData(response.data[0]);
+
+        const detailsData =
+          response?.ContractDetails?.[0] ||
+          response?.ContractDetail?.[0] ||
+          (Array.isArray(response?.data) ? response.data[0] : response?.data) ||
+          (Array.isArray(response) ? response[0] : response);
+
+        if (detailsData && typeof detailsData === "object" && !detailsData.error) {
+          const normalized: Record<string, any> = { ...detailsData };
+          Object.keys(detailsData).forEach((key) => {
+            normalized[key.toUpperCase()] = detailsData[key];
+          });
+          setFullData((prev: any) => ({ ...prev, ...normalized }));
         }
       } catch (error) {
         console.error("Failed to fetch contract details", error);
@@ -43,8 +58,10 @@ export default function ContractDashboard({ loanData, onBack }: ContractDashboar
         setLoading(false);
       }
     };
-    fetchDetails();
-  }, [loanData?.LOANID, loanData?.CIFID, language]);
+    if (loanData?.LOANID || loanData?.CIFID || loanData?.id) {
+      fetchDetails();
+    }
+  }, [loanData?.LOANID, loanData?.CIFID, loanData?.id, language]);
 
   if (loading && !fullData?.LOANID) {
     return (
@@ -63,46 +80,45 @@ export default function ContractDashboard({ loanData, onBack }: ContractDashboar
 
   return (
     <div className="flex flex-col h-full animate-in fade-in slide-in-from-right-5 duration-500">
-      {/* Premium Glassmorphic Header */}
-      <div className="flex items-center justify-between px-8 py-5 bg-white/40 dark:bg-slate-900/40 backdrop-blur-2xl border-b border-white/20 dark:border-slate-800 sticky top-0 z-30 shadow-sm transition-all duration-500">
-        <div className="flex items-center gap-8">
+      {/* Clean Header */}
+      <div className="flex items-center justify-between px-6 py-4 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-30 shadow-sm">
+        <div className="flex items-center gap-6">
           <Button 
             variant="ghost" 
             size="icon" 
             onClick={onBack} 
-            className="h-11 w-11 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm hover:scale-110 hover:shadow-indigo-500/20 active:scale-95 transition-all duration-300 group"
+            className="h-9 w-9 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all duration-200"
           >
-            <ArrowLeft className="h-5 w-5 text-indigo-600 transition-transform group-hover:-translate-x-1" />
+            <ArrowLeft className="h-4 w-4 text-indigo-600" />
           </Button>
           
-          <div className="flex items-center gap-10">
+          <div className="flex items-center gap-8">
             <HeaderInfo label="CIF ID" value={fullData?.CIFID || "-"} color="indigo" />
-            <div className="h-10 w-px bg-slate-200 dark:bg-slate-700 mx-2" />
+            <div className="h-8 w-px bg-slate-200 dark:bg-slate-700 mx-1" />
             <HeaderInfo label="Customer Name" value={fullData?.CUSTOMERNAME || "FAISAL ABDULRAHMAN SALIM AL"} isBold />
-            <div className="h-10 w-px bg-slate-200 dark:bg-slate-700 mx-2" />
+            <div className="h-8 w-px bg-slate-200 dark:bg-slate-700 mx-1" />
             <HeaderInfo label="Loan ID" value={fullData?.LOANID || "-"} color="indigo" />
           </div>
         </div>
         
         <div className="flex items-center gap-3">
-          <div className="px-4 py-1.5 rounded-full bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800/30 flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="text-[10px] font-black text-emerald-700 dark:text-emerald-400 uppercase tracking-widest">Active Status</span>
+          <div className="px-3.5 py-1 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800/30 flex items-center gap-2">
+            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="text-xs font-semibold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">Active Status</span>
           </div>
         </div>
       </div>
 
-      <div className="p-6 flex-1 space-y-8 overflow-y-auto custom-scrollbar">
+      <div className="py-4 space-y-6 overflow-y-auto custom-scrollbar">
         {/* Modern Tabs Navigation */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <div className="backdrop-blur-md bg-slate-100/50 dark:bg-slate-800/20 p-1.5 rounded-[2rem] border border-white/30 dark:border-slate-700/50 shadow-inner mb-8">
-            <TabsList className="flex flex-row w-full items-center justify-start bg-transparent h-auto p-0 gap-1 overflow-x-auto scrollbar-hide">
-              <DashboardTab value="details" label="Contract Details" icon={FileText} active={activeTab === "details"} />
-              <DashboardTab value="schedule" label="Repayment Schedule" icon={Calendar} active={activeTab === "schedule"} />
+          <div className="bg-slate-100 dark:bg-slate-800/60 p-1 rounded-xl border border-slate-200/60 dark:border-slate-700/60 mb-6">
+            <TabsList className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-5 w-full bg-transparent group-data-[orientation=horizontal]/tabs:h-auto h-auto p-0 gap-1">
+              <DashboardTab value="details" label="ContractDetails" icon={FileText} active={activeTab === "details"} />
+              <DashboardTab value="schedule" label="RescheduleTabs" icon={Calendar} active={activeTab === "schedule"} />
               <DashboardTab value="receipts" label="Receipts" icon={Receipt} active={activeTab === "receipts"} />
-              <DashboardTab value="receivables" label="Receivables" icon={Wallet} active={activeTab === "receivables"} />
+              <DashboardTab value="receivables" label="Recievables" icon={Wallet} active={activeTab === "receivables"} />
               <DashboardTab value="charges" label="Charges" icon={CreditCard} active={activeTab === "charges"} />
-              <DashboardTab value="audit" label="Audit Trail" icon={History} active={activeTab === "audit"} />
             </TabsList>
           </div>
 
@@ -110,16 +126,16 @@ export default function ContractDashboard({ loanData, onBack }: ContractDashboar
             {/* Stats Overview Grid */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {stats.map((stat, idx) => (
-                <div key={idx} className={`relative overflow-hidden group p-8 rounded-[2.5rem] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 ${stat.shadow} transition-all duration-500 hover:scale-[1.02] hover:border-indigo-500/30`}>
+                <div key={idx} className="relative overflow-hidden group p-6 rounded-[2rem] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm transition-all duration-300 hover:shadow-md">
                   <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${stat.gradient} opacity-[0.03] rounded-full -mr-12 -mt-12 transition-transform duration-700 group-hover:scale-150`} />
                   
                   <div className="flex flex-col items-center gap-3">
-                    <span className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">{stat.label}</span>
+                    <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{stat.label}</span>
                     <div className="flex items-center gap-5">
                       <div className={`p-4 rounded-2xl bg-gradient-to-br ${stat.gradient} shadow-lg shadow-indigo-500/20`}>
                         <stat.icon className="w-6 h-6 text-white" />
                       </div>
-                      <span className="text-4xl font-black tracking-tighter text-slate-900 dark:text-white">
+                      <span className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
                         {stat.value}
                       </span>
                     </div>
@@ -226,10 +242,6 @@ export default function ContractDashboard({ loanData, onBack }: ContractDashboar
           <TabsContent value="charges" className="animate-in fade-in slide-in-from-right-5 duration-500">
             <Charges loanId={fullData?.LOANID} cifId={fullData?.CIFID} />
           </TabsContent>
-
-          <TabsContent value="audit" className="animate-in fade-in slide-in-from-right-5 duration-500">
-            <AuditTrail loanId={fullData?.LOANID} cifId={fullData?.CIFID} />
-          </TabsContent>
         </Tabs>
       </div>
     </div>
@@ -239,11 +251,11 @@ export default function ContractDashboard({ loanData, onBack }: ContractDashboar
 // Helper Components
 function HeaderInfo({ label, value, color, isBold, className = "" }: { label: string; value: string; color?: string; isBold?: boolean; className?: string }) {
   return (
-    <div className={`flex flex-col gap-1.5 ${className}`}>
-      <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{label}</span>
-      <span className={`text-[15px] font-black tracking-tight ${
+    <div className={`flex flex-col gap-1 ${className}`}>
+      <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">{label}</span>
+      <span className={`text-[16px] font-bold tracking-normal ${
         color === "indigo" ? "text-indigo-600" : 
-        isBold ? "text-slate-900 dark:text-white" : "text-slate-600 dark:text-slate-300"
+        isBold ? "text-slate-900 dark:text-white" : "text-slate-700 dark:text-slate-300"
       }`}>
         {value}
       </span>
@@ -256,26 +268,26 @@ function DashboardTab({ value, label, icon: Icon, active }: { value: string; lab
     <TabsTrigger
       value={value}
       className={`
-        flex-shrink-0 gap-2.5 px-6 py-2.5 text-[11px] font-black rounded-xl transition-all duration-500
+        w-full flex items-center justify-center gap-2 px-3 py-2.5 text-[13px] sm:text-sm font-semibold rounded-xl transition-all duration-300 after:hidden h-full
         ${active 
-          ? "bg-white dark:bg-slate-900 text-indigo-600 shadow-md scale-[1.02]" 
-          : "text-slate-500 dark:text-slate-400 hover:text-indigo-600"}
+          ? "bg-white dark:bg-slate-900 text-indigo-600 shadow-md" 
+          : "text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400"}
       `}
     >
-      <Icon className={`h-3.5 w-3.5 transition-transform duration-500 ${active ? "scale-110" : ""}`} />
-      {label}
+      <Icon className={`h-4 w-4 transition-transform duration-300 ${active ? "scale-110" : ""}`} />
+      <span className="truncate">{label}</span>
     </TabsTrigger>
   );
 }
 
 function DetailsCard({ title, icon: Icon, children }: { title: string; icon: any; children: React.ReactNode }) {
   return (
-    <div className="group bg-white/60 dark:bg-slate-900/60 backdrop-blur-md rounded-[2.5rem] border border-white dark:border-slate-800 p-8 shadow-xl transition-all duration-500 hover:shadow-indigo-500/5">
+    <div className="group bg-white dark:bg-slate-900 rounded-[2rem] border border-slate-200 dark:border-slate-800 p-8 shadow-sm transition-all duration-300 hover:shadow-md">
       <div className="flex items-center gap-3 mb-8">
         <div className="p-2.5 rounded-xl bg-indigo-50 dark:bg-indigo-900/30">
           <Icon className="w-5 h-5 text-indigo-600" />
         </div>
-        <h3 className="text-sm font-black text-slate-800 dark:text-slate-200 uppercase tracking-widest">{title}</h3>
+        <h3 className="text-base font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wide">{title}</h3>
       </div>
       {children}
     </div>
@@ -288,13 +300,13 @@ function Field({ label, value, isAmount, isBadge, color, suffix = "", className 
     : (value || "-");
 
   return (
-    <div className={`flex flex-col gap-2 group/field ${className}`}>
-      <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] ml-1 transition-colors group-hover/field:text-indigo-500">
+    <div className={`flex flex-col gap-1.5 group/field ${className}`}>
+      <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider ml-1 transition-colors group-hover/field:text-indigo-500">
         {label}
       </label>
-      <div className="h-11 px-4 flex items-center rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm transition-all duration-300 group-hover/field:border-indigo-200 dark:group-hover/field:border-indigo-900/50 group-hover/field:shadow-md">
+      <div className="h-11 px-4 flex items-center rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm transition-all duration-300 group-hover/field:border-indigo-200 dark:group-hover/field:border-indigo-900/50 group-hover/field:shadow-md">
         {isBadge ? (
-          <span className={`px-2.5 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-widest ${
+          <span className={`px-3 py-1 rounded-lg text-xs font-semibold uppercase tracking-wider ${
             String(value).toLowerCase() === "active" 
               ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
               : "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
@@ -302,10 +314,10 @@ function Field({ label, value, isAmount, isBadge, color, suffix = "", className 
             {displayValue}
           </span>
         ) : (
-          <span className={`text-[13px] font-bold tracking-tight ${
-            color === "red" ? "text-rose-600" : 
-            color === "indigo" ? "text-indigo-600" : 
-            "text-slate-700 dark:text-slate-200"
+          <span className={`text-sm font-medium ${
+            color === "red" ? "text-rose-600 font-semibold" : 
+            color === "indigo" ? "text-indigo-600 font-semibold" : 
+            "text-slate-800 dark:text-slate-200"
           }`}>
             {displayValue}{suffix}
           </span>
