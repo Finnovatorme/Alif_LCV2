@@ -36,6 +36,9 @@ export type FormFieldConfig = {
   dependent?: string;
   placeholder?: string;
   rules?: AnyObj;
+  className?: string;
+  rows?: number;
+  inputClassName?: string;
   [k: string]: any;
 };
 
@@ -182,10 +185,10 @@ export default function FormComponent({
 
   const colsClass = clsx("grid gap-4", {
     "grid-cols-1": numOfColumns === 1,
-    "grid-cols-2": numOfColumns === 2,
-    "grid-cols-3": numOfColumns === 3,
-    "grid-cols-4": numOfColumns === 4,
-    "grid-cols-5": numOfColumns === 5,
+    "grid-cols-1 md:grid-cols-2": numOfColumns === 2,
+    "grid-cols-1 md:grid-cols-2 lg:grid-cols-3": numOfColumns === 3,
+    "grid-cols-1 md:grid-cols-2 lg:grid-cols-4": numOfColumns === 4,
+    "grid-cols-1 md:grid-cols-2 lg:grid-cols-5": numOfColumns === 5,
   });
 
   const onSubmit = async (data: AnyObj) => {
@@ -253,7 +256,7 @@ export default function FormComponent({
                 };
 
                 return (
-                  <div key={cfg.name} className="space-y-1">
+                  <div key={cfg.name} className={clsx("space-y-1", cfg.className)}>
                     <FormField
                       control={control}
                       name={cfg.name}

@@ -5,7 +5,7 @@ import { useSelector } from "react-redux";
 import { ReusableDataTable } from "@/components/FormComponent/DataGrid";
 import { ColumnDef } from "@tanstack/react-table";
 import { CreditCard } from "lucide-react";
-import { getCustomerDetails } from "../../HandlingAPIs";
+import { getCustomerLiabilities, getCustomerDetails } from "../../HandlingAPIs";
 import { languageParams } from "@/lib/redux/slices/dashboardApplSlice";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -19,15 +19,29 @@ export default function LiabilitiesDetails({ cifId }: { cifId: string }) {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const response = await getCustomerDetails({ CIFID: cifId, language });
-        setData(response?.CustomerLiabilities || []);
+        const response = await getCustomerLiabilities({ CIFID: cifId, language });
+        let liabilitiesList: any[] = [];
+        if (Array.isArray(response) && response.length > 0) {
+          liabilitiesList = response;
+        } else if (response?.CustomerLiabilities && Array.isArray(response.CustomerLiabilities)) {
+          liabilitiesList = response.CustomerLiabilities;
+        } else if (response?.data && Array.isArray(response.data)) {
+          liabilitiesList = response.data;
+        } else {
+          // Fallback to getCustomerDetails if getCustomerLiabilities returns empty
+          const fallbackRes = await getCustomerDetails({ CIFID: cifId, language });
+          liabilitiesList = fallbackRes?.CustomerLiabilities || (Array.isArray(fallbackRes) ? fallbackRes : []);
+        }
+        setData(liabilitiesList);
       } catch (error) {
         toast.error("Failed to fetch liabilities details");
       } finally {
         setLoading(false);
       }
     };
-    fetchData();
+    if (cifId) {
+      fetchData();
+    }
   }, [cifId, language]);
 
   const columns: ColumnDef<any>[] = [
@@ -53,7 +67,7 @@ export default function LiabilitiesDetails({ cifId }: { cifId: string }) {
         const isActive = val === "Active" || val === "Open" || val === "Y";
         return (
           <span
-            className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-[11px] font-black uppercase tracking-wider transition-all duration-300 border ${
+            className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider transition-all duration-300 border ${
               isActive
                 ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.15)] dark:bg-emerald-500/20 dark:text-emerald-400 dark:border-emerald-500/30"
                 : "bg-slate-500/10 text-slate-600 border-slate-500/20 shadow-sm dark:bg-slate-500/20 dark:text-slate-400 dark:border-slate-500/30"

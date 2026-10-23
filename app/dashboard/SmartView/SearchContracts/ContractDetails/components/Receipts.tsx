@@ -5,7 +5,7 @@ import { useSelector } from "react-redux";
 import { ReusableDataTable } from "@/components/FormComponent/DataGrid";
 import { ColumnDef } from "@tanstack/react-table";
 import { Receipt, Eye } from "lucide-react";
-import { getReceipts } from "../../HandlingAPIs";
+import { getCustomerContractReceipts, getReceipts } from "../../HandlingAPIs";
 import { languageParams } from "@/lib/redux/slices/dashboardApplSlice";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -26,7 +26,7 @@ export default function Receipts({
     const fetchData = async () => {
       setLoading(true);
       try {
-        const response = await getReceipts({
+        const response = await getCustomerContractReceipts({
           LOANID: loanId,
           CIFID: cifId,
           language,
@@ -43,7 +43,9 @@ export default function Receipts({
         setLoading(false);
       }
     };
-    fetchData();
+    if (loanId || cifId) {
+      fetchData();
+    }
   }, [loanId, cifId, language]);
 
   const keyMappings = {
@@ -77,7 +79,7 @@ export default function Receipts({
   ];
 
   return (
-    <div className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-md rounded-[2rem] border border-white dark:border-slate-800 shadow-xl overflow-hidden animate-in fade-in duration-500">
+    <div className="animate-in fade-in duration-500">
       <ReusableDataTable
         title="Receipts History"
         initialData={data}

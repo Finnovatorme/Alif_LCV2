@@ -48,7 +48,7 @@ export default function EmploymentDetails({ cifId }: { cifId: string }) {
         const isActive = val === "Active" || val === "Employed" || val === "Y";
         return (
           <span
-            className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-[11px] font-black uppercase tracking-wider transition-all duration-300 border ${
+            className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider transition-all duration-300 border ${
               isActive
                 ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.15)] dark:bg-emerald-500/20 dark:text-emerald-400 dark:border-emerald-500/30"
                 : "bg-slate-500/10 text-slate-600 border-slate-500/20 shadow-sm dark:bg-slate-500/20 dark:text-slate-400 dark:border-slate-500/30"

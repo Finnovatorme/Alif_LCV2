@@ -199,7 +199,7 @@ export function EditModal({
           "p-0 rounded-2xl bg-white dark:bg-gray-950 shadow-2xl flex flex-col overflow-hidden",
           isLargeForm
             ? "w-[98vw] h-[92vh] sm:max-w-[95vw] lg:max-w-[98vw]"
-            : "w-full max-w-fit md:min-w-[750px] lg:min-w-[850px] min-h-[400px] h-fit max-h-[92vh]"
+            : "w-[95vw] sm:max-w-3xl lg:max-w-4xl min-h-[400px] h-fit max-h-[92vh]"
         )}
       >
         {/* Global gradient bar from DialogContent is at the top */}

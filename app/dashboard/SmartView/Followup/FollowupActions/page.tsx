@@ -114,7 +114,7 @@ export default function FollowupActionsPage() {
   const combinedData = { ...customerDetails, ...followupDetails };
 
   return (
-    <div className="flex flex-col gap-8 p-6 lg:p-8 min-h-screen font-sans">
+    <div className="flex flex-col gap-6 font-sans">
       {/* Action Bar Component */}
       <Actions
         cifId={cifId}

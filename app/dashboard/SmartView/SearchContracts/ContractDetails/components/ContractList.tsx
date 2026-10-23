@@ -5,7 +5,7 @@ import { useSelector } from "react-redux";
 import { ReusableDataTable } from "@/components/FormComponent/DataGrid";
 import { ColumnDef } from "@tanstack/react-table";
 import { FileText, ArrowRight } from "lucide-react";
-import { getCustomerDetails } from "../../HandlingAPIs";
+import { getCustomerContractsList } from "../../HandlingAPIs";
 import { languageParams } from "@/lib/redux/slices/dashboardApplSlice";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -19,8 +19,28 @@ export default function ContractList({ cifId, onSelectLoan }: { cifId: string; o
     const fetchData = async () => {
       setLoading(true);
       try {
-        const response = await getCustomerDetails({ CIFID: cifId, language });
-        setData(response?.ContractList || []);
+        const response: any = await getCustomerContractsList({
+          CIFID: cifId,
+          language: language === "ar" ? 2 : 1,
+        });
+
+        if (Array.isArray(response)) {
+          setData(response);
+        } else if (response?.ContractList && Array.isArray(response.ContractList)) {
+          setData(response.ContractList);
+        } else if (response?.data && Array.isArray(response.data)) {
+          setData(response.data);
+        } else if (response && typeof response === "object" && !response.error) {
+          // If response object has array values
+          const firstArray = Object.values(response).find((val) => Array.isArray(val));
+          if (firstArray) {
+            setData(firstArray as any[]);
+          } else {
+            setData([]);
+          }
+        } else {
+          setData([]);
+        }
       } catch (error) {
         toast.error("Failed to fetch contract list");
       } finally {
@@ -39,7 +59,7 @@ export default function ContractList({ cifId, onSelectLoan }: { cifId: string; o
           variant="outline"
           size="sm"
           onClick={() => onSelectLoan?.(row.original)}
-          className="rounded-lg h-8 px-4 text-[11px] font-black border-indigo-200 text-indigo-600 hover:bg-indigo-50 hover:border-indigo-300 transition-all active:scale-95"
+          className="rounded-lg h-8 px-4 text-xs font-semibold border-indigo-200 text-indigo-600 hover:bg-indigo-50 hover:border-indigo-300 transition-all active:scale-95"
         >
           Details
         </Button>
@@ -59,7 +79,7 @@ export default function ContractList({ cifId, onSelectLoan }: { cifId: string; o
         const isActive = status === "Active";
         return (
           <div
-            className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-[11px] font-black uppercase tracking-wider transition-all duration-300 border ${
+            className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider transition-all duration-300 border ${
               isActive
                 ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.15)] dark:bg-emerald-500/20 dark:text-emerald-400 dark:border-emerald-500/30"
                 : "bg-rose-500/10 text-rose-600 border-rose-500/20 shadow-[0_0_15px_rgba(244,63,94,0.15)] dark:bg-rose-500/20 dark:text-rose-400 dark:border-rose-500/30"
@@ -82,7 +102,7 @@ export default function ContractList({ cifId, onSelectLoan }: { cifId: string; o
         const isActive = status === "Active";
         return (
           <div
-            className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-[11px] font-black uppercase tracking-wider transition-all duration-300 border ${
+            className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider transition-all duration-300 border ${
               isActive
                 ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.15)] dark:bg-emerald-500/20 dark:text-emerald-400 dark:border-emerald-500/30"
                 : "bg-slate-500/10 text-slate-600 border-slate-500/20 shadow-sm dark:bg-slate-500/20 dark:text-slate-400 dark:border-slate-500/30"

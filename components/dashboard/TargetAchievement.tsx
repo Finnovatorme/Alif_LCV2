@@ -59,7 +59,7 @@ export default function TargetAchievement({ title, allocated = 0, achieved = 0 }
   ];
 
   return (
-    <Card className="flex flex-col h-full min-h-[220px] bg-white dark:bg-gray-900 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 dark:border-gray-800 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 relative overflow-hidden group">
+    <Card className="flex flex-col h-full min-h-[220px] bg-white dark:bg-gray-900 rounded-3xl border border-gray-100 dark:border-gray-800 transition-all duration-300 shadow-sm hover:shadow-md relative overflow-hidden group">
       <div className="absolute inset-0 opacity-20 transition-opacity duration-300 group-hover:opacity-40 rounded-3xl overflow-hidden pointer-events-none">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={sparklineData} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>

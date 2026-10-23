@@ -9,6 +9,7 @@ export type FieldType =
   | "password"
   | "number"
   | "textarea"
+  | "multiline"
   | "select"
   | "checkbox"
   | "switch"
@@ -35,6 +36,10 @@ export interface FieldConfig {
   required?: boolean;
   disabled?: boolean;
   readOnly?: boolean;
+
+  rows?: number;
+  className?: string;
+  inputClassName?: string;
 
   // keep extra keys you already pass sometimes
   error?: string;

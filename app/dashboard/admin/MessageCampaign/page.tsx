@@ -501,16 +501,14 @@ export default function MessageCampaignPage() {
     };
 
     return (
-        <div className="space-y-6 p-6 font-sans">
-            <div className="flex items-center justify-between mb-4">
-                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Message Campaign</h1>
-
-                <Button onClick={openAdd} disabled={loading} className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl">
-                    Add New Record
-                </Button>
-            </div>
-
+        <div className="space-y-6 font-sans">
             <ReusableDataTable
+                title="Message Campaign"
+                headerActions={
+                    <Button onClick={openAdd} disabled={loading} className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl">
+                        Add New Record
+                    </Button>
+                }
                 loading={loading}
                 columns={tableColumns}
                 initialData={rows}

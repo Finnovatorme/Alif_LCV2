@@ -108,7 +108,7 @@ export default function AuditTrail({ loanId, cifId }: { loanId?: string; cifId: 
 
         return (
           <span
-            className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-[11px] font-black uppercase tracking-wider transition-all duration-300 border ${colorClass}`}
+            className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider transition-all duration-300 border ${colorClass}`}
           >
             <span className={`relative flex h-2 w-2`}>
               {isCompleted && <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${dotColor} opacity-75`}></span>}
@@ -123,7 +123,7 @@ export default function AuditTrail({ loanId, cifId }: { loanId?: string; cifId: 
   ];
 
   return (
-    <div className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-md rounded-[2rem] border border-white dark:border-slate-800 shadow-xl overflow-hidden animate-in fade-in duration-500">
+    <div className="animate-in fade-in duration-500">
       <ReusableDataTable
         title="Contract Audit Trail"
         initialData={data}

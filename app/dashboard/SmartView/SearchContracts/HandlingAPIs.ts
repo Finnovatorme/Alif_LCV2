@@ -36,51 +36,214 @@ const extractData = (response: any) => {
   return [];
 };
 
-export const getCustomerDetails = async (params: any) => {
+export const getCustomerContractsList = async (params: any) => {
   try {
-    const response = await axios.get("/api/host/CustomerDetails", { params });
-    // If response.data.data exists and is an object, return it. Otherwise return response.data
-    if (response.data?.data && typeof response.data.data === 'object' && !Array.isArray(response.data.data)) {
-      return response.data.data;
-    }
+    const hostUrl = process.env.HOST_API_KEY || "http://173.208.180.149:8098";
+    const cifId = typeof params === "object" ? (params.CIFID || params.CifId) : params;
+    const langInput = typeof params === "object" ? (params.language || params.Language) : 1;
+    const language = typeof langInput === "string" ? (langInput === "ar" ? 2 : 1) : (langInput || 1);
+
+    const response = await axios.get(
+      `${hostUrl}/api/Customer/get-CustomerContractsList`,
+      {
+        params: {
+          "params[CIFID]": cifId,
+          "params[language]": language,
+        },
+      }
+    );
     return response.data;
   } catch (error: any) {
-    return { error: error.message };
+    console.error("Error fetching customer contracts list:", error);
+    return { error: error?.message || "Failed to fetch contract list" };
+  }
+};
+
+export const getCustomerDetails = async (params: any) => {
+  try {
+    const hostUrl = process.env.HOST_API_KEY || "http://173.208.180.149:8098";
+    const cifId = typeof params === "object" ? (params.CIFID || params.CifId || params.cifId) : params;
+    const langInput = typeof params === "object" ? (params.language || params.Language) : 1;
+    const language = typeof langInput === "string" ? (langInput === "ar" ? 2 : 1) : (langInput || 1);
+
+    const queryParams: Record<string, any> = {
+      CIFID: cifId,
+      language: language,
+    };
+    if (typeof params === "object") {
+      Object.assign(queryParams, params);
+      queryParams.CIFID = cifId;
+      queryParams.language = language;
+    }
+
+    const response = await axios.get(`${hostUrl}/api/Customer/get-CustomerDetails`, {
+      params: queryParams,
+    });
+
+    const resData = response.data;
+    if (resData?.data && typeof resData.data === 'object' && !Array.isArray(resData.data)) {
+      return resData.data;
+    }
+    return resData;
+  } catch (error: any) {
+    console.error("Error fetching customer details:", error);
+    return { error: error?.message || "Failed to fetch customer details" };
   }
 };
 
 export const getCustomerAddress = async (params: any) => {
   try {
-    const response = await axios.get("/api/host/CustomerAddress", { params });
+    const hostUrl = process.env.HOST_API_KEY || "http://173.208.180.149:8098";
+    const cifId = typeof params === "object" ? (params.CIFID || params.CifId) : params;
+    const langInput = typeof params === "object" ? (params.language || params.Language) : 1;
+    const language = typeof langInput === "string" ? (langInput === "ar" ? 2 : 1) : (langInput || 1);
+
+    const queryParams: Record<string, any> = {
+      CIFID: cifId,
+      language: language,
+    };
+    if (typeof params === "object") {
+      Object.assign(queryParams, params);
+      queryParams.CIFID = cifId;
+      queryParams.language = language;
+    }
+
+    const response = await axios.get(`${hostUrl}/api/Customer/get-CustomerAddress`, {
+      params: queryParams,
+    });
     return extractData(response.data);
   } catch (error: any) {
+    console.error("Error fetching customer address:", error);
+    return [];
+  }
+};
+
+export const getCustomerIncome = async (params: any) => {
+  try {
+    const hostUrl = process.env.HOST_API_KEY || "http://173.208.180.149:8098";
+    const cifId = typeof params === "object" ? (params.CIFID || params.CifId || params.cifId) : params;
+    const langInput = typeof params === "object" ? (params.language || params.Language) : 1;
+    const language = typeof langInput === "string" ? (langInput === "ar" ? 2 : 1) : (langInput || 1);
+
+    const queryParams: Record<string, any> = {
+      CIFID: cifId,
+      language: language,
+    };
+    if (typeof params === "object") {
+      Object.assign(queryParams, params);
+      queryParams.CIFID = cifId;
+      queryParams.language = language;
+    }
+
+    const response = await axios.get(`${hostUrl}/api/Customer/get-CustomerIncome`, {
+      params: queryParams,
+    });
+    return extractData(response.data);
+  } catch (error: any) {
+    console.error("Error fetching customer income:", error);
+    return [];
+  }
+};
+
+export const getCustomerLiabilities = async (params: any) => {
+  try {
+    const hostUrl = process.env.HOST_API_KEY || "http://173.208.180.149:8098";
+    const cifId = typeof params === "object" ? (params.CIFID || params.CifId || params.cifId) : params;
+    const langInput = typeof params === "object" ? (params.language || params.Language) : 1;
+    const language = typeof langInput === "string" ? (langInput === "ar" ? 2 : 1) : (langInput || 1);
+
+    const queryParams: Record<string, any> = {
+      CIFID: cifId,
+      language: language,
+    };
+    if (typeof params === "object") {
+      Object.assign(queryParams, params);
+      queryParams.CIFID = cifId;
+      queryParams.language = language;
+    }
+
+    const response = await axios.get(`${hostUrl}/api/Customer/get-CustomerLiabilities`, {
+      params: queryParams,
+    });
+    return extractData(response.data);
+  } catch (error: any) {
+    console.error("Error fetching customer liabilities:", error);
     return [];
   }
 };
 
 export const getCustomerEmployment = async (params: any) => {
   try {
-    const response = await axios.get("/api/host/CustomerEmployment", { params });
+    const hostUrl = process.env.HOST_API_KEY || "http://173.208.180.149:8098";
+    const cifId = typeof params === "object" ? (params.CIFID || params.CifId) : params;
+    const langInput = typeof params === "object" ? (params.language || params.Language) : 1;
+    const language = typeof langInput === "string" ? (langInput === "ar" ? 2 : 1) : (langInput || 1);
+
+    const response = await axios.get(
+      `${hostUrl}/api/Customer/get-CustomerEmployment`,
+      {
+        params: {
+          "params[CIFID]": cifId,
+          "params[language]": language,
+        },
+      }
+    );
     return extractData(response.data);
   } catch (error: any) {
+    console.error("Error fetching customer employment:", error);
     return [];
   }
 };
 
 export const getCustomerBank = async (params: any) => {
   try {
-    const response = await axios.get("/api/host/CustomerBank", { params });
+    const hostUrl = process.env.HOST_API_KEY || "http://173.208.180.149:8098";
+    const cifId = typeof params === "object" ? (params.CIFID || params.CifId) : params;
+    const langInput = typeof params === "object" ? (params.language || params.Language) : 1;
+    const language = typeof langInput === "string" ? (langInput === "ar" ? 2 : 1) : (langInput || 1);
+
+    const response = await axios.get(
+      `${hostUrl}/api/Customer/get-CustomerBank`,
+      {
+        params: {
+          "params[CIFID]": cifId,
+          "params[language]": language,
+        },
+      }
+    );
     return extractData(response.data);
   } catch (error: any) {
+    console.error("Error fetching customer bank details:", error);
     return [];
   }
 };
 
 export const getCustomerAssetCommodity = async (params: any) => {
   try {
-    const response = await axios.get("/api/host/CustomerAssetCommodity", { params });
+    const hostUrl = process.env.HOST_API_KEY || "http://173.208.180.149:8098";
+    const cifId = typeof params === "object" ? (params.CIFID || params.CifId) : params;
+    const langInput = typeof params === "object" ? (params.language || params.Language) : 1;
+    const language = typeof langInput === "string" ? (langInput === "ar" ? 2 : 1) : (langInput || 1);
+
+    const queryParams: Record<string, any> = {
+      CIFID: cifId,
+      language: language,
+    };
+    if (typeof params === "object") {
+      Object.assign(queryParams, params);
+      queryParams.CIFID = cifId;
+      queryParams.language = language;
+    }
+
+    const response = await axios.get(
+      `${hostUrl}/api/Customer/get-CustomerAssetCommodity`,
+      {
+        params: queryParams,
+      }
+    );
     return extractData(response.data);
   } catch (error: any) {
+    console.error("Error fetching customer asset and commodity details:", error);
     return [];
   }
 };
@@ -96,45 +259,185 @@ export const getTransactionAuditTrail = async (params: any) => {
 
 export const getCustomerContractDetails = async (params: any) => {
   try {
-    const response = await axios.get("/api/host/CustomerContractDetails", { params });
+    const hostUrl = process.env.HOST_API_KEY || "http://173.208.180.149:8098";
+    const loanId = typeof params === "object" ? (params.LOANID || params.LoanId || params.loanId) : params;
+    const cifId = typeof params === "object" ? (params.CIFID || params.CifId || params.cifId) : params;
+    const langInput = typeof params === "object" ? (params.language || params.Language) : 1;
+    const language = typeof langInput === "string" ? (langInput === "ar" ? 2 : 1) : (langInput || 1);
+
+    const queryParams: Record<string, any> = {
+      "params[LOANID]": loanId,
+      "params[CIFID]": cifId,
+      "params[language]": language,
+    };
+
+    const response = await axios.get(`${hostUrl}/api/Customer/get-CustomerContractDetails`, {
+      params: queryParams,
+    });
     return response.data;
   } catch (error: any) {
-    return { error: error.message };
+    console.error("Error fetching customer contract details:", error);
+    return { error: error?.message || "Failed to fetch contract details" };
+  }
+};
+
+export const getCustomerContractRepayScheduleConsolidated = async (params: any) => {
+  try {
+    const hostUrl = process.env.HOST_API_KEY || "http://173.208.180.149:8098";
+    const loanId = typeof params === "object" ? (params.LOANID || params.LoanId || params.loanId) : params;
+    const cifId = typeof params === "object" ? (params.CIFID || params.CifId || params.cifId) : params;
+    const langInput = typeof params === "object" ? (params.language || params.Language) : 1;
+    const language = typeof langInput === "string" ? (langInput === "ar" ? 2 : 1) : (langInput || 1);
+
+    const queryParams: Record<string, any> = {
+      LOANID: loanId,
+      CIFID: cifId,
+      language: language,
+    };
+    if (typeof params === "object") {
+      Object.assign(queryParams, params);
+      queryParams.LOANID = loanId;
+      queryParams.CIFID = cifId;
+      queryParams.language = language;
+    }
+
+    const response = await axios.get(
+      `${hostUrl}/api/Customer/get-CustomerContractRepayScheduleConsolidated`,
+      { params: queryParams }
+    );
+    return extractData(response.data);
+  } catch (error: any) {
+    console.error("Error fetching consolidated repay schedule:", error);
+    return [];
+  }
+};
+
+export const getCustomerContractRepayScheduleAssetWise = async (params: any) => {
+  try {
+    const hostUrl = process.env.HOST_API_KEY || "http://173.208.180.149:8098";
+    const loanId = typeof params === "object" ? (params.LOANID || params.LoanId || params.loanId) : params;
+    const cifId = typeof params === "object" ? (params.CIFID || params.CifId || params.cifId) : params;
+    const langInput = typeof params === "object" ? (params.language || params.Language) : 1;
+    const language = typeof langInput === "string" ? (langInput === "ar" ? 2 : 1) : (langInput || 1);
+
+    const queryParams: Record<string, any> = {
+      LOANID: loanId,
+      CIFID: cifId,
+      language: language,
+    };
+    if (typeof params === "object") {
+      Object.assign(queryParams, params);
+      queryParams.LOANID = loanId;
+      queryParams.CIFID = cifId;
+      queryParams.language = language;
+    }
+
+    const response = await axios.get(
+      `${hostUrl}/api/Customer/get-CustomerContractRepayScheduleAssetwise`,
+      { params: queryParams }
+    );
+    return extractData(response.data);
+  } catch (error: any) {
+    console.error("Error fetching assetwise repay schedule:", error);
+    return [];
   }
 };
 
 export const getRepaymentSchedule = async (params: any) => {
   try {
-    const response = await axios.get("/api/host/RepaymentSchedule", { params });
-    return response.data;
+    const consolidated = await getCustomerContractRepayScheduleConsolidated(params);
+    const assetwise = await getCustomerContractRepayScheduleAssetWise(params);
+    return {
+      Consolidated: consolidated,
+      AssetWise: assetwise,
+    };
   } catch (error: any) {
-    return { error: error.message };
+    return { error: error?.message || "Failed to fetch repayment schedule" };
   }
 };
 
-export const getReceipts = async (params: any) => {
+export const getCustomerContractReceipts = async (params: any) => {
   try {
-    const response = await axios.get("/api/host/Receipts", { params });
+    const hostUrl = process.env.HOST_API_KEY || "http://173.208.180.149:8098";
+    const loanId = typeof params === "object" ? (params.LOANID || params.LoanId || params.loanId) : params;
+    const cifId = typeof params === "object" ? (params.CIFID || params.CifId || params.cifId) : params;
+    const langInput = typeof params === "object" ? (params.language || params.Language) : 1;
+    const language = typeof langInput === "string" ? (langInput === "ar" ? 2 : 1) : (langInput || 1);
+
+    const queryParams: Record<string, any> = {
+      LOANID: loanId,
+      CIFID: cifId,
+      language: language,
+    };
+    if (typeof params === "object") {
+      Object.assign(queryParams, params);
+      queryParams.LOANID = loanId;
+      queryParams.CIFID = cifId;
+      queryParams.language = language;
+    }
+
+    const response = await axios.get(`${hostUrl}/api/Customer/get-CustomerContractReceipts`, {
+      params: queryParams,
+    });
     return extractData(response.data);
   } catch (error: any) {
+    console.error("Error fetching customer contract receipts:", error);
     return [];
   }
 };
 
+export const getReceipts = getCustomerContractReceipts;
+
 export const getCustomerContractReceivables = async (params: any) => {
   try {
-    const response = await axios.get("/api/host/CustomerContractReceivables", { params });
+    const hostUrl = process.env.HOST_API_KEY || "http://173.208.180.149:8098";
+    const loanId = typeof params === "object" ? (params.LOANID || params.LoanId || params.loanId) : params;
+    const cifId = typeof params === "object" ? (params.CIFID || params.CifId || params.cifId) : params;
+    const langInput = typeof params === "object" ? (params.language || params.Language) : 1;
+    const language = typeof langInput === "string" ? (langInput === "ar" ? 2 : 1) : (langInput || 1);
+
+    const queryParams: Record<string, any> = {
+      LOANID: loanId,
+      CIFID: cifId,
+      language: language,
+    };
+    if (typeof params === "object") {
+      Object.assign(queryParams, params);
+      queryParams.LOANID = loanId;
+      queryParams.CIFID = cifId;
+      queryParams.language = language;
+    }
+
+    const response = await axios.get(`${hostUrl}/api/Customer/get-CustomerContractReceivables`, {
+      params: queryParams,
+    });
     return extractData(response.data);
   } catch (error: any) {
+    console.error("Error fetching customer contract receivables:", error);
     return [];
   }
 };
 
 export const getCustomerContractCharges = async (params: any) => {
   try {
-    const response = await axios.get("/api/host/CustomerContractCharges", { params });
+    const hostUrl = process.env.HOST_API_KEY || "http://173.208.180.149:8098";
+    const loanId = typeof params === "object" ? (params.LOANID || params.LoanId || params.loanId) : params;
+    const cifId = typeof params === "object" ? (params.CIFID || params.CifId || params.cifId) : params;
+    const langInput = typeof params === "object" ? (params.language || params.Language) : 1;
+    const language = typeof langInput === "string" ? (langInput === "ar" ? 2 : 1) : (langInput || 1);
+
+    const queryParams: Record<string, any> = {
+      "params[LOANID]": loanId,
+      "params[CIFID]": cifId,
+      "params[language]": language,
+    };
+
+    const response = await axios.get(`${hostUrl}/api/Customer/get-CustomerContractCharges`, {
+      params: queryParams,
+    });
     return extractData(response.data);
   } catch (error: any) {
+    console.error("Error fetching customer contract charges:", error);
     return [];
   }
 };
