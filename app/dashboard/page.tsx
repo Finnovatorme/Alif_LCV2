@@ -33,9 +33,10 @@ export default function Page() {
   const [dashboardLoading, setDashboardLoading] = useState(true);
 
   const handleViewDetailsPage = (row: any) => {
-    const cifId = row.CIFID || row.CifId || row.APPID || row.id;
+    const rawCif = row.CIFID ?? row.CifId ?? row.APPID ?? row.id;
+    const cifId = rawCif !== undefined && rawCif !== null ? rawCif : "";
     const appId = Number(cifId);
-    if (cifId) {
+    if (cifId !== "") {
       dispatch(setSelectedUserId(appId));
       dispatch(hasDashabordParams({ ...row, CIFID: cifId, hideButton: false }));
       localStorage.setItem("selectedAppId", String(cifId));
@@ -49,10 +50,24 @@ export default function Page() {
 
   const columns: ColumnDef<any>[] = [
     { accessorKey: "CIFID", header: "Cif ID" },
+    {
+      accessorKey: "CUSTOMERNAME",
+      header: "Customer Name",
+      cell: ({ row }) => row.original.CUSTOMERNAME || "-",
+    },
     { accessorKey: "USERID", header: "User ID" },
     { accessorKey: "COLLECTORNAME", header: "Collector Name" },
     { accessorKey: "LCALLOCATIONGROUP", header: "LC Allocation Group" },
-    { accessorKey: "TOTALOVERDUEAMOUNT", header: "Total Overdue Amount" },
+    {
+      accessorKey: "TOTALOVERDUEAMOUNT",
+      header: "Total Overdue Amount",
+      cell: ({ row }) => {
+        const val = row.original.TOTALOVERDUEAMOUNT;
+        return val !== undefined && val !== null && !isNaN(Number(val))
+          ? Number(val).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+          : "-";
+      },
+    },
     {
       id: "actions",
       header: "Action",
@@ -78,19 +93,24 @@ export default function Page() {
 
       setDashboardLoading(true);
       try {
-        const hostUrl = process.env.HOST_API_KEY;
+        const hostUrl = process.env.HOST_API_KEY || "https://demo.finnovator.com.sa:8015";
         const response = await axios.get(
-          `${hostUrl}/api/Dashboard/get-UserDashboard`,
+          `${hostUrl}/api/Dashboard`,
           {
             params: { UserId: resolvedUserId, Recstatus: true, language },
           }
         );
-        const data = response.data;
-        setFollowUp(data);
+        const resData = response.data?.data || response.data;
+        const normalized = {
+          COMPLETE_FOLLOWUP: Array.isArray(resData?.COMPLETE_FOLLOWUP) ? resData.COMPLETE_FOLLOWUP : [],
+          ESCALATED_CASES: Array.isArray(resData?.ESCALATED_CASES) ? resData.ESCALATED_CASES : [],
+          PENDING_FOLLOWUP: Array.isArray(resData?.PENDING_FOLLOWUP) ? resData.PENDING_FOLLOWUP : [],
+        };
+        setFollowUp(normalized);
         setFollowUpCount(
-          (data.COMPLETE_FOLLOWUP?.length || 0) +
-          (data.ESCALATED_CASES?.length || 0) +
-          (data.PENDING_FOLLOWUP?.length || 0)
+          normalized.COMPLETE_FOLLOWUP.length +
+          normalized.ESCALATED_CASES.length +
+          normalized.PENDING_FOLLOWUP.length
         );
       } catch (err) {
         console.error("Dashboard data fetch error:", err);
@@ -144,8 +164,9 @@ export default function Page() {
         />
         <TargetAchievement
           title="Target General"
-          allocated={200}
-          achieved={150}
+          allocated={followUpCount || 20}
+          achieved={followUp.COMPLETE_FOLLOWUP?.length || 0}
+          data={followUp}
         />
       </div>
 
@@ -161,7 +182,7 @@ export default function Page() {
             />
           </div>
           <div className="xl:col-span-5">
-            <BarChartComponent title="Customer Distribution By Group" />
+            <BarChartComponent title="Customer Distribution By Group" data={followUp} />
           </div>
         </div>
 
@@ -176,7 +197,7 @@ export default function Page() {
             />
           </div>
           <div className="xl:col-span-5">
-            <HorizontalBarChartComponent title="Collection Performance" />
+            <HorizontalBarChartComponent title="Collection Performance" data={followUp} />
           </div>
         </div>
 
@@ -191,7 +212,7 @@ export default function Page() {
             />
           </div>
           <div className="xl:col-span-5">
-            <FollowupStatusChart title="Follow-up Status Distribution" />
+            <FollowupStatusChart title="Follow-up Status Distribution" data={followUp} />
           </div>
         </div>
       </div>

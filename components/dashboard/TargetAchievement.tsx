@@ -17,38 +17,65 @@ interface TargetAchievementProps {
   title: string;
   allocated?: number;
   achieved?: number;
+  data?: any;
 }
 
-export default function TargetAchievement({ title, allocated = 0, achieved = 0 }: TargetAchievementProps) {
+export default function TargetAchievement({
+  title,
+  allocated = 0,
+  achieved = 0,
+  data: dataProp,
+}: TargetAchievementProps) {
   const language = useSelector(languageParams);
   const { user } = useAuth() as { user: any };
   const [data, setData] = useState({ allocated: 0, achieved: 0 });
 
+  const processData = (rawData: any) => {
+    if (!rawData) return;
+    const resolved = rawData?.data || rawData;
+    if (Array.isArray(resolved) && resolved.length > 0) {
+      const item = resolved[0];
+      setData({
+        allocated: item.TARGET_ALLOCATED || 0,
+        achieved: item.ACHIEVED || 0,
+      });
+    } else if (resolved?.PENDING_FOLLOWUP || resolved?.COMPLETE_FOLLOWUP || resolved?.ESCALATED_CASES) {
+      const total =
+        (resolved.PENDING_FOLLOWUP?.length || 0) +
+        (resolved.COMPLETE_FOLLOWUP?.length || 0) +
+        (resolved.ESCALATED_CASES?.length || 0);
+      const done = resolved.COMPLETE_FOLLOWUP?.length || 0;
+      setData({
+        allocated: total,
+        achieved: done,
+      });
+    }
+  };
+
   useEffect(() => {
+    if (dataProp) {
+      processData(dataProp);
+      return;
+    }
+
     const fetchData = async () => {
       const resolvedUserId = user?.UserId || user?.userId || user?.Userid;
       if (!resolvedUserId) return;
       try {
-        const hostUrl = process.env.HOST_API_KEY;
+        const hostUrl = process.env.HOST_API_KEY || "https://demo.finnovator.com.sa:8015";
         const response = await axios.get(
-          `${hostUrl}/api/Dashboard/get-DashboardCollectionAcheivement`,
+          `${hostUrl}/api/Dashboard`,
           {
             params: { UserID: resolvedUserId, language },
           }
         );
-        if (response.data && response.data.length > 0) {
-          const item = response.data[0];
-          setData({
-            allocated: item.TARGET_ALLOCATED || 0,
-            achieved: item.ACHIEVED || 0,
-          });
-        }
+        processData(response.data);
       } catch (err) {
         console.error("Target achievement api error:", err);
       }
     };
     if (user) fetchData();
-  }, [user, language]);
+  }, [dataProp, user, language]);
 
   const displayAllocated = data.allocated || allocated;
   const displayAchieved = data.achieved || achieved;
