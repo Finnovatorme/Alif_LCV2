@@ -2,7 +2,8 @@
 
 import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
-import { X, PlusCircle, History } from "lucide-react";
+import { X, PlusCircle, History, MessageSquareText, PhoneCall, Copy, Check } from "lucide-react";
+import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 import { ReusableDataTable } from "@/components/FormComponent/DataGrid";
 import FormComponent, { FormFieldConfig } from "@/components/FormComponent/FormComponent";
 import { ColumnDef } from "@tanstack/react-table";
@@ -11,6 +12,7 @@ import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { languageParams } from "@/lib/redux/slices/dashboardApplSlice";
 import { followupDetailsGet } from "../page";
+import { vbValue, Option } from "@/utils/dropDownApis";
 
 interface FollowUpModalProps {
   isOpen: boolean;
@@ -31,6 +33,21 @@ export const FollowUpModal: React.FC<FollowUpModalProps> = ({
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [historyList, setHistoryList] = useState<any[]>([]);
+  const [vbOptions, setVbOptions] = useState<{
+    COLLFOLLOWUPCONTACTTYPE: Option[];
+    COLLFOLLOWUPANSWEREDBY: Option[];
+    COLLFOLLOWUPRESULT: Option[];
+    COLLFOLLOWUPSUBRESULT: Option[];
+    COLLFOLLOWUPDELAYREASON: Option[];
+    COLLFOLLOWUPNEXTACTION: Option[];
+  }>({
+    COLLFOLLOWUPCONTACTTYPE: [],
+    COLLFOLLOWUPANSWEREDBY: [],
+    COLLFOLLOWUPRESULT: [],
+    COLLFOLLOWUPSUBRESULT: [],
+    COLLFOLLOWUPDELAYREASON: [],
+    COLLFOLLOWUPNEXTACTION: [],
+  });
 
   const language = selectedLanguage === "ar" ? 2 : 1;
   const currentUserId = String(authUser?.id || authUser?.Userid || authUser?.username || "1");
@@ -52,60 +69,87 @@ export const FollowUpModal: React.FC<FollowUpModalProps> = ({
     }
   };
 
+  const fetchVbOptions = async () => {
+    const langStr = String(language);
+    try {
+      const [
+        contactTypeRes,
+        answeredByRes,
+        resultRes,
+        subResultRes,
+        delayReasonRes,
+        nextActionRes,
+      ] = await Promise.all([
+        vbValue("COLLFOLLOWUPCONTACTTYPE", langStr),
+        vbValue("COLLFOLLOWUPANSWEREDBY", langStr),
+        vbValue("COLLFOLLOWUPRESULT", langStr),
+        vbValue("COLLFOLLOWUPSUBRESULT", langStr),
+        vbValue("COLLFOLLOWUPDELAYREASON", langStr),
+        vbValue("COLLFOLLOWUPNEXTACTION", langStr),
+      ]);
+
+      setVbOptions({
+        COLLFOLLOWUPCONTACTTYPE: Array.isArray(contactTypeRes) ? contactTypeRes : [],
+        COLLFOLLOWUPANSWEREDBY: Array.isArray(answeredByRes) ? answeredByRes : [],
+        COLLFOLLOWUPRESULT: Array.isArray(resultRes) ? resultRes : [],
+        COLLFOLLOWUPSUBRESULT: Array.isArray(subResultRes) ? subResultRes : [],
+        COLLFOLLOWUPDELAYREASON: Array.isArray(delayReasonRes) ? delayReasonRes : [],
+        COLLFOLLOWUPNEXTACTION: Array.isArray(nextActionRes) ? nextActionRes : [],
+      });
+    } catch (err) {
+      console.error("Error fetching VB options:", err);
+    }
+  };
+
   useEffect(() => {
     if (isOpen) {
       fetchHistory();
+      fetchVbOptions();
     }
   }, [isOpen, cifId, language]);
 
   const followUpFormFields: FormFieldConfig[] = [
     {
-      name: "contactDetails",
-      label: "Contact Details",
-      type: "text",
-      placeholder: "Enter contact details",
-    },
-    {
-      name: "followUpDetails",
-      label: "Follow Up Details",
-      type: "text",
-      placeholder: "Enter follow up details",
-    },
-    {
       name: "vb_CollFollowUpContactType",
       label: "Contact Type",
-      type: "number",
-      placeholder: "0",
+      type: "select",
+      placeholder: "Select Contact Type",
+      options: vbOptions.COLLFOLLOWUPCONTACTTYPE,
     },
     {
       name: "vb_CollFollowUpAnsweredBy",
       label: "Answered By",
-      type: "number",
-      placeholder: "0",
+      type: "select",
+      placeholder: "Select Answered By",
+      options: vbOptions.COLLFOLLOWUPANSWEREDBY,
     },
     {
       name: "vb_CollFollowUpResult",
       label: "Follow Up Result",
-      type: "number",
-      placeholder: "0",
+      type: "select",
+      placeholder: "Select Follow Up Result",
+      options: vbOptions.COLLFOLLOWUPRESULT,
     },
     {
       name: "vb_CollFollowUpSubResult",
       label: "Follow Up Sub Result",
-      type: "number",
-      placeholder: "0",
+      type: "select",
+      placeholder: "Select Sub Result",
+      options: vbOptions.COLLFOLLOWUPSUBRESULT,
     },
     {
       name: "vb_CollFollowUpDelayReason",
       label: "Delay Reason",
-      type: "number",
-      placeholder: "0",
+      type: "select",
+      placeholder: "Select Delay Reason",
+      options: vbOptions.COLLFOLLOWUPDELAYREASON,
     },
     {
       name: "vb_CollFollowUpNextAction",
       label: "Next Action",
-      type: "number",
-      placeholder: "0",
+      type: "select",
+      placeholder: "Select Next Action",
+      options: vbOptions.COLLFOLLOWUPNEXTACTION,
     },
     {
       name: "nextActionDate",
@@ -124,10 +168,22 @@ export const FollowUpModal: React.FC<FollowUpModalProps> = ({
       placeholder: "0",
     },
     {
-      name: "bucket",
-      label: "Bucket",
-      type: "text",
-      placeholder: "Bucket",
+      name: "contactDetails",
+      label: "Contact Details",
+      type: "textarea",
+      rows: 5,
+      placeholder: "Enter contact details",
+      className: "col-span-1 md:col-span-2 lg:col-span-2 lg:col-start-1",
+      inputClassName: "min-h-[140px] resize-y",
+    },
+    {
+      name: "followUpDetails",
+      label: "Follow Up Details",
+      type: "textarea",
+      rows: 5,
+      placeholder: "Enter follow up details",
+      className: "col-span-1 md:col-span-2 lg:col-span-2",
+      inputClassName: "min-h-[140px] resize-y",
     },
   ];
 
@@ -192,7 +248,6 @@ export const FollowUpModal: React.FC<FollowUpModalProps> = ({
         fulfillmentStatus: true,
         resultFulfillmentDateActual: fulfillmentDateIso,
         resultFulfillmentDateExtended: fulfillmentDateIso,
-        bucket: dataToPost.bucket || dataToPost.BUCKET || "",
         assignmentId: 0,
         allocationId: 0,
         followUpDetails:
@@ -241,7 +296,124 @@ export const FollowUpModal: React.FC<FollowUpModalProps> = ({
     return str;
   };
 
+  const HoverTextCell: React.FC<{
+    value: any;
+    title: string;
+    icon?: React.ReactNode;
+  }> = ({ value, title, icon }) => {
+    const [copied, setCopied] = useState(false);
+
+    if (!value || value === "-" || String(value).trim() === "") {
+      return <span className="text-gray-400 dark:text-gray-500 font-normal">-</span>;
+    }
+
+    const str = String(value).trim();
+    const wordLimit = 5;
+    const words = str.split(/\s+/);
+    const isLong = str.length > 20 || words.length > wordLimit;
+
+    const displaySnippet = isLong
+      ? words.slice(0, wordLimit).join(" ") + "..."
+      : str;
+
+    const handleCopy = (e: React.MouseEvent) => {
+      e.stopPropagation();
+      navigator.clipboard.writeText(str);
+      setCopied(true);
+      toast.success(`${title} copied to clipboard!`);
+      setTimeout(() => setCopied(false), 2000);
+    };
+
+    return (
+      <TooltipPrimitive.Provider delayDuration={100}>
+        <TooltipPrimitive.Root>
+          <TooltipPrimitive.Trigger asChild>
+            <div className="inline-flex items-center gap-1.5 cursor-pointer max-w-[170px] group/hovercell py-1 px-2 rounded-md hover:bg-blue-50/80 dark:hover:bg-blue-950/50 border border-transparent hover:border-blue-200/60 dark:hover:border-blue-800/60 transition-all">
+              <span className="truncate text-xs font-medium text-gray-900 dark:text-gray-200 group-hover/hovercell:text-blue-600 dark:group-hover/hovercell:text-blue-400 underline decoration-dotted decoration-gray-400 dark:decoration-gray-600 underline-offset-4 group-hover/hovercell:decoration-blue-500 dark:group-hover/hovercell:decoration-blue-400 transition-colors">
+                {displaySnippet}
+              </span>
+            </div>
+          </TooltipPrimitive.Trigger>
+
+          <TooltipPrimitive.Portal>
+            <TooltipPrimitive.Content
+              side="top"
+              align="start"
+              sideOffset={8}
+              className="z-[9999] w-[320px] sm:w-[380px] rounded-2xl bg-white dark:bg-[#0f172a] backdrop-blur-xl border border-gray-200 dark:border-slate-800 shadow-[0_20px_50px_rgba(0,0,0,0.25)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.7)] p-4 text-gray-900 dark:text-white animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 outline-none select-text"
+            >
+              {/* ClickUp Style Header */}
+              <div className="flex items-center justify-between gap-2 pb-2.5 mb-2.5 border-b border-gray-200 dark:border-slate-800">
+                <div className="flex items-center gap-2">
+                  <div className="p-1.5 rounded-lg bg-blue-50 dark:bg-blue-950/80 text-blue-600 dark:text-blue-400 border border-blue-200/50 dark:border-blue-800/50">
+                    {icon || <MessageSquareText className="w-3.5 h-3.5" />}
+                  </div>
+                  <span className="text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider">
+                    {title}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleCopy}
+                  className="flex items-center gap-1 text-[11px] font-medium text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 bg-gray-100/60 dark:bg-slate-800/80 hover:bg-gray-100 dark:hover:bg-slate-800 px-2.5 py-1 rounded-md border border-gray-200/60 dark:border-slate-700/80 transition-colors cursor-pointer"
+                  title="Copy to clipboard"
+                >
+                  {copied ? (
+                    <>
+                      <Check className="w-3 h-3 text-emerald-500 dark:text-emerald-400" />
+                      <span className="text-emerald-600 dark:text-emerald-400 font-semibold">Copied</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-3 h-3" />
+                      <span>Copy</span>
+                    </>
+                  )}
+                </button>
+              </div>
+
+              {/* ClickUp Style Comment / Details Body */}
+              <div className="bg-gray-50/70 dark:bg-[#090d16] p-3 rounded-xl border border-gray-200/50 dark:border-slate-800/80 text-xs text-gray-800 dark:text-slate-200 whitespace-pre-wrap break-words leading-relaxed max-h-56 overflow-y-auto">
+                {str}
+              </div>
+
+              <TooltipPrimitive.Arrow className="fill-white dark:fill-[#0f172a]" />
+            </TooltipPrimitive.Content>
+          </TooltipPrimitive.Portal>
+        </TooltipPrimitive.Root>
+      </TooltipPrimitive.Provider>
+    );
+  };
+
   const tableColumns: ColumnDef<any>[] = [
+    {
+      accessorKey: "CONTACTDETAILS",
+      header: "Contact Details",
+      cell: ({ row }) => {
+        const val = getRowValue(row.original, ["CONTACTDETAILS", "contactDetails"]);
+        return (
+          <HoverTextCell
+            value={val}
+            title="Contact Details"
+            icon={<PhoneCall className="w-3.5 h-3.5" />}
+          />
+        );
+      },
+    },
+    {
+      accessorKey: "FOLLOWUPDETAILS",
+      header: "Followup Details",
+      cell: ({ row }) => {
+        const val = getRowValue(row.original, ["FOLLOWUPDETAILS", "followUpDetails"]);
+        return (
+          <HoverTextCell
+            value={val}
+            title="Followup Details"
+            icon={<MessageSquareText className="w-3.5 h-3.5" />}
+          />
+        );
+      },
+    },
     {
       accessorKey: "FOLLOWUPDATE",
       header: "Followup Date",
@@ -255,17 +427,29 @@ export const FollowUpModal: React.FC<FollowUpModalProps> = ({
     {
       accessorKey: "COLLFOLLOWUPRESULT",
       header: "Followup Result",
-      cell: ({ row }) => getRowValue(row.original, ["COLLFOLLOWUPRESULT", "COLLFOLLOWUPRESULT_DESC", "VB_COLLFOLLOWUPRESULT", "vb_CollFollowUpResult", "FOLLOWUPRESULT"]),
+      cell: ({ row }) => {
+        const val = getRowValue(row.original, ["COLLFOLLOWUPRESULT_DESC", "COLLFOLLOWUPRESULT", "VB_COLLFOLLOWUPRESULT", "vb_CollFollowUpResult", "FOLLOWUPRESULT"]);
+        const found = vbOptions.COLLFOLLOWUPRESULT.find((o) => String(o.value) === String(val));
+        return found ? found.label : val;
+      },
     },
     {
       accessorKey: "COLLFOLLOWUPSUBRESULT",
       header: "Followup Sub Result",
-      cell: ({ row }) => getRowValue(row.original, ["COLLFOLLOWUPSUBRESULT", "COLLFOLLOWUPSUBRESULT_DESC", "VB_COLLFOLLOWUPSUBRESULT", "vb_CollFollowUpSubResult", "FOLLOWUPSUBRESULT"]),
+      cell: ({ row }) => {
+        const val = getRowValue(row.original, ["COLLFOLLOWUPSUBRESULT_DESC", "COLLFOLLOWUPSUBRESULT", "VB_COLLFOLLOWUPSUBRESULT", "vb_CollFollowUpSubResult", "FOLLOWUPSUBRESULT"]);
+        const found = vbOptions.COLLFOLLOWUPSUBRESULT.find((o) => String(o.value) === String(val));
+        return found ? found.label : val;
+      },
     },
     {
       accessorKey: "COLLFOLLOWUPNEXTACTION",
       header: "Followup Next Action",
-      cell: ({ row }) => getRowValue(row.original, ["COLLFOLLOWUPNEXTACTION", "COLLFOLLOWUPNEXTACTION_DESC", "VB_COLLFOLLOWUPNEXTACTION", "vb_CollFollowUpNextAction", "FOLLOWUPNEXTACTION"]),
+      cell: ({ row }) => {
+        const val = getRowValue(row.original, ["COLLFOLLOWUPNEXTACTION_DESC", "COLLFOLLOWUPNEXTACTION", "VB_COLLFOLLOWUPNEXTACTION", "vb_CollFollowUpNextAction", "FOLLOWUPNEXTACTION"]);
+        const found = vbOptions.COLLFOLLOWUPNEXTACTION.find((o) => String(o.value) === String(val));
+        return found ? found.label : val;
+      },
     },
     {
       accessorKey: "RESULTFULFILLMENTDATE",

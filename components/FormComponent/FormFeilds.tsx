@@ -86,6 +86,7 @@ export function FormFeilds(
         </>
       );
 
+    case "multiline":
     case "textarea":
       return (
         <>
@@ -94,83 +95,19 @@ export function FormFeilds(
             {config.required && <span className="text-red-500">*</span>}
           </FormLabel>
           <Textarea
+            rows={config.rows || 3}
             placeholder={config.placeholder}
             {...field}
             disabled={config.disabled}
             readOnly={config.readOnly}
-            className={cn(errorClass)}
+            className={cn(errorClass, config.inputClassName)}
           />
           {renderError()}
         </>
       );
 
     case "select":
-      return (
-        <>
-          <FormLabel>
-            {config.label}{" "}
-            {config.required && <span className="text-red-500">*</span>}
-          </FormLabel>
-
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                role="combobox"
-                disabled={config.disabled}
-                className={cn(
-                  "w-full justify-between pl-3",
-                  config.error && "border-red-500",
-                )}
-              >
-                <div className="flex items-center gap-2 truncate">
-                  <Menu className="h-4 w-4 shrink-0 opacity-50" />
-                  <span className="truncate">
-                    {field.value
-                      ? config.options?.find(
-                          (opt) =>
-                            String(opt.value) === String(field.value ?? ""),
-                        )?.label
-                      : config.placeholder}
-                  </span>
-                </div>
-
-                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-              </Button>
-            </PopoverTrigger>
-
-            <PopoverContent className="w-full p-0">
-              <Command>
-                <CommandInput placeholder={config.placeholder || "Search..."} />
-                <CommandList onWheel={(e) => e.stopPropagation()}>
-                  <CommandEmpty>No option found.</CommandEmpty>
-                  <CommandGroup>
-                    {config.options?.map((opt) => (
-                      <CommandItem
-                        key={String(opt.value)}
-                        value={String(opt.value)}
-                        onSelect={() => field.onChange(opt.value)}
-                      >
-                        <Check
-                          className={cn(
-                            "mr-2 h-4 w-4",
-                            String(field.value ?? "") === String(opt.value)
-                              ? "opacity-100"
-                              : "opacity-0",
-                          )}
-                        />
-                        {opt.label}
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
-                </CommandList>
-              </Command>
-            </PopoverContent>
-          </Popover>
-
-          {renderError()}
-        </>
-      );
+      return <SelectField config={config} field={field} />;
 
     case "checkbox":
       return (
@@ -318,7 +255,7 @@ function SelectField({
                 {config.options?.map((opt) => (
                   <CommandItem
                     key={String(opt.value)}
-                    value={String(opt.value)}
+                    value={`${opt.label} ${opt.value}`}
                     onSelect={() => {
                       field.onChange(opt.value);
                       setOpen(false);
