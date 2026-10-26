@@ -1,0 +1,100 @@
+name: Build and Deploy LC App
+
+on:
+  push:
+    branches:
+      - finno-vps
+      - local-server
+      # - esage-vps   # <-- UNCOMMENT when the Esage server is restored
+
+jobs:
+  # ============================================================
+  # JOB 1: Build and Push Docker Image (Local Server)
+  # Image: finnovator/lc-local  (create as PRIVATE on Docker Hub)
+  # ============================================================
+  build-and-push-local:
+    if: github.ref == 'refs/heads/local-server'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          no-cache: true
+          tags: finnovator/lc-local:latest
+          build-args: |
+            BS_API_KEY=${{ secrets.BS_LOCAL_API_URL }}
+            LO_API_KEY=${{ secrets.LO_LOCAL_API_URL }}
+            DMS_API_KEY=${{ secrets.DMS_LOCAL_API_URL }}
+            SECRET_KEY=${{ secrets.LC_SECRET_KEY }}
+
+  # ============================================================
+  # JOB 2: Deploy to Finno VPS (PM2 — builds on the server)
+  # Fallback URLs in next.config.ts are the Finno/demo URLs,
+  # so this works even before FINNO secrets are created.
+  # ============================================================
+  deploy-finno-vps:
+    if: github.ref == 'refs/heads/finno-vps'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy to Finno VPS via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.FINNO_VPS_IP }}
+          username: ${{ secrets.FINNO_VPS_USER }}
+          password: ${{ secrets.FINNO_VPS_PASSWORD }}
+          script: |
+            cd ~/Alif_LCV2 || exit 1
+            git fetch origin
+            git reset --hard origin/finno-vps
+            echo "BS_API_KEY=${{ secrets.BS_FINNO_API_URL }}" > .env
+            echo "LO_API_KEY=${{ secrets.LO_FINNO_API_URL }}" >> .env
+            echo "DMS_API_KEY=${{ secrets.DMS_FINNO_API_URL }}" >> .env
+            echo "SECRET_KEY=${{ secrets.LC_SECRET_KEY }}" >> .env
+            npm ci
+            npm run build
+            pm2 delete LC-FINNO || echo "not running"
+            PORT=3003 pm2 start npm --name "LC-FINNO" -- start
+            sleep 5
+            curl -f -k http://localhost:3003/login && echo "HEALTH CHECK OK"
+
+  # ============================================================
+  # JOB 3: Esage VPS — COMMENTED OUT until server is restored.
+  # Steps to activate later:
+  #   1. Uncomment the esage-vps branch trigger at the top
+  #   2. Uncomment this entire job
+  #   3. Create Docker Hub repo  finnovator/lc-esage  (private)
+  #   4. Add secrets: BS/LO/DMS_ESAGE_API_URL
+  #   5. Add the deploy-lc-esage.ps1 script on the Esage server
+  # ============================================================
+  # build-and-push-esage:
+  #   if: github.ref == 'refs/heads/esage-vps'
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #
+  #     - uses: docker/login-action@v3
+  #       with:
+  #         username: ${{ secrets.DOCKER_USERNAME }}
+  #         password: ${{ secrets.DOCKER_PASSWORD }}
+  #
+  #     - uses: docker/build-push-action@v5
+  #       with:
+  #         context: .
+  #         push: true
+  #         no-cache: true
+  #         tags: finnovator/lc-esage:latest
+  #         build-args: |
+  #           BS_API_KEY=${{ secrets.BS_ESAGE_API_URL }}
+  #           LO_API_KEY=${{ secrets.LO_ESAGE_API_URL }}
+  #           DMS_API_KEY=${{ secrets.DMS_ESAGE_API_URL }}
+  #           SECRET_KEY=${{ secrets.LC_SECRET_KEY }}
