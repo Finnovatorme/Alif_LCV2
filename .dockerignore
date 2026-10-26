@@ -1,0 +1,33 @@
+# Dependencies (Docker reinstalls these inside the image — never copy them)
+node_modules
+
+# Build output (Docker rebuilds it — copying old builds causes weird bugs)
+.next
+out
+build
+
+# Environment files — NEVER send these into the image
+.env
+.env.*
+!.env.example
+
+# Git and CI files (useless inside a container)
+.git
+.gitignore
+.github
+
+# Logs and OS junk
+*.log
+.DS_Store
+*.pem
+
+# Docker files themselves
+Dockerfile
+.dockerignore
+docker-compose*.yml
+
+# Misc
+coverage
+.vercel
+*.tsbuildinfo
+README.md
