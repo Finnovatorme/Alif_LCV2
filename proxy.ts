@@ -103,7 +103,9 @@ export default function middleware(req: NextRequest) {
     url.pathname = "/login";
 
     const response =
-      NextResponse.redirect(url, 308);
+      NextResponse.redirect(url, 307);
+
+    response.headers.set("Cache-Control", "no-store, max-age=0");
 
     return applySecurityHeaders(
       response,
@@ -128,7 +130,9 @@ export default function middleware(req: NextRequest) {
     url.pathname = "/dashboard";
 
     const response =
-      NextResponse.redirect(url, 308);
+      NextResponse.redirect(url, 307);
+
+    response.headers.set("Cache-Control", "no-store, max-age=0");
 
     return applySecurityHeaders(
       response,

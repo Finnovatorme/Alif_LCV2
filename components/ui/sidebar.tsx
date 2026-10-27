@@ -592,20 +592,7 @@ function SidebarMenuSkeleton({
 }: React.ComponentProps<"div"> & {
   showIcon?: boolean;
 }) {
-  const widthClass = React.useMemo(() => {
-    const widths = [
-      "max-w-[50%]",
-      "max-w-[55%]",
-      "max-w-[60%]",
-      "max-w-[65%]",
-      "max-w-[70%]",
-      "max-w-[75%]",
-      "max-w-[80%]",
-      "max-w-[85%]",
-      "max-w-[90%]",
-    ];
-    return widths[Math.floor(Math.random() * widths.length)];
-  }, []);
+  const widthClass = "max-w-[75%]";
 
   return (
     <div

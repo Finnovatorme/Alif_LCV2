@@ -174,9 +174,12 @@ export function LoginForm({
           sessionStorage.setItem("userToken", encryptedUserString);
         }
 
-        // Use hard redirect if router.replace feels slow or get blocked
-        window.location.href = "/dashboard";
-        setLoading(false);
+        // Persist authData immediately for AuthContext hydration
+        localStorage.setItem("authData", JSON.stringify(userDataToSet));
+
+        // Use client-side routing to avoid hard refresh, network log clear, and black screen flash
+        router.refresh();
+        router.replace("/dashboard");
         return;
       }
 

@@ -12,6 +12,7 @@ import { useSelector } from "react-redux";
 import { languageParams } from "@/lib/redux/slices/dashboardApplSlice";
 import { useAuth } from "@/hooks/useAuth";
 import axios from "@/utils/axios";
+import { Target } from "lucide-react";
 
 interface TargetAchievementProps {
   title: string;
@@ -101,19 +102,34 @@ export default function TargetAchievement({
         </ResponsiveContainer>
       </div>
 
-      <CardHeader className="pb-2 pt-6 relative z-10">
-        <CardTitle className="text-sm font-bold text-gray-500 dark:text-gray-400 tracking-wider uppercase">{title}</CardTitle>
+      <CardHeader className="pb-1 pt-5 px-5 flex flex-row items-center justify-between relative z-10 flex-none">
+        <CardTitle className="text-xs font-bold text-gray-500 dark:text-gray-400 tracking-wider uppercase">
+          {title}
+        </CardTitle>
+        <div className="w-7 h-7 rounded-full bg-emerald-50 dark:bg-emerald-950/50 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+          <Target className="w-3.5 h-3.5" />
+        </div>
       </CardHeader>
 
-      <CardContent className="flex-1 relative z-10 flex flex-col justify-end pb-6">
+      <CardContent className="flex-1 relative z-10 flex flex-col justify-end pb-4 pt-1 px-5">
         <div className="flex flex-col gap-2">
           <div className="flex justify-between items-end">
-            <span className="text-sm text-gray-500 font-medium">Achieved</span>
-            <span className="text-3xl font-extrabold text-emerald-500 dark:text-emerald-400">{displayAchieved}</span>
+            <div>
+              <span className="text-[11px] text-gray-500 dark:text-gray-400 font-semibold uppercase tracking-wider block">Achieved</span>
+              <span className="text-3xl font-black text-emerald-600 dark:text-emerald-400">{displayAchieved}</span>
+            </div>
+            <div className="text-right">
+              <span className="text-[11px] text-gray-400 dark:text-gray-500 font-medium block">Allocated</span>
+              <span className="text-lg font-bold text-gray-700 dark:text-gray-300">{displayAllocated}</span>
+            </div>
           </div>
-          <div className="flex justify-between items-end border-t border-gray-100 dark:border-gray-800 pt-2">
-            <span className="text-sm text-gray-500 font-medium">Allocated</span>
-            <span className="text-lg font-bold text-gray-700 dark:text-gray-300">{displayAllocated}</span>
+          
+          {/* Progress bar */}
+          <div className="w-full bg-gray-100 dark:bg-gray-800 h-2 rounded-full overflow-hidden mt-1">
+            <div
+              className="bg-emerald-500 h-full rounded-full transition-all duration-700"
+              style={{ width: `${Math.min(100, Math.round(((displayAchieved || 0) / Math.max(displayAllocated || 1, 1)) * 100))}%` }}
+            />
           </div>
         </div>
       </CardContent>

@@ -1,5 +1,27 @@
 import type { NextConfig } from "next";
 
+const bsApiUrl =
+  process.env.BS_API_KEY ||
+  "https://demo.finnovator.com.sa:8010";
+const loApiUrl =
+  process.env.LO_API_KEY ||
+  "http://173.208.180.149:8084";
+const lmApiUrl =
+  process.env.LM_API_KEY ||
+  "http://173.208.180.149:8065";
+const hostApiUrl =
+  process.env.HOST_API_KEY ||
+  "https://demo.finnovator.com.sa:8015";
+const dmsApiUrl =
+  process.env.DMS_API_KEY ||
+  "http://173.208.180.149:8088";
+const amlApiUrl =
+  process.env.AML_API_KEY ||
+  "http://173.208.180.149:8090";
+const secretKey =
+  process.env.SECRET_KEY ||
+  "4a5e3d8c2b7f1a9e6d8c3b2a7f1e9d6c4a5e3d8c2b7f1a9e6d8c3b2a7f1e9d6c";
+
 const nextConfig: NextConfig = {
   output: "standalone",
 
@@ -8,15 +30,14 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
 
   env: {
-    BS_API_KEY: "https://demo.finnovator.com.sa:8010",
-    LO_API_KEY: "http://173.208.180.149:8084",
-    LM_API_KEY: "http://173.208.180.149:8065",
-    HOST_API_KEY: "https://demo.finnovator.com.sa:8015",
-    DMS_API_KEY: "http://173.208.180.149:8088",
-    AML_API_KEY: "http://173.208.180.149:8090",
+    BS_API_KEY: bsApiUrl,
+    LO_API_KEY: loApiUrl,
+    LM_API_KEY: lmApiUrl,
+    HOST_API_KEY: hostApiUrl,
+    DMS_API_KEY: dmsApiUrl,
+    AML_API_KEY: amlApiUrl,
 
-    SECRET_KEY:
-      "4a5e3d8c2b7f1a9e6d8c3b2a7f1e9d6c4a5e3d8c2b7f1a9e6d8c3b2a7f1e9d6c",
+    SECRET_KEY: secretKey,
   },
 
   async redirects() {

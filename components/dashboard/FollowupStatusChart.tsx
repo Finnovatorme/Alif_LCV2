@@ -99,6 +99,7 @@ export default function FollowupStatusChart({ title, data }: FollowupStatusChart
             `${bsUrl}/api/CnfgVbValues/GetCnfgVbValues/COLLFOLLOWUPRESULT`,
             { params: { language } }
           );
+          console.log('resultRes---',resultRes)
           if (Array.isArray(resultRes.data)) {
             resultOptions = resultRes.data.map((item: any) => item.VALDESC1);
           }

@@ -94,8 +94,8 @@ export default function MessageCampaignPage() {
                 }
             );
 
-            if (Array.isArray(response.data)) {
-                setRows(response.data.map((item: any, index: number) => ({ ...item, id: index + 1 })));
+            if (Array.isArray(response.data?.data)) {
+                setRows(response.data?.data?.map((item: any, index: number) => ({ ...item, id: index + 1 })));
             } else {
                 setRows([]);
             }

@@ -15,19 +15,20 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 
 // API Helpers
+const getSafeArray = (data: any) =>
+  Array.isArray(data) ? data : Array.isArray(data?.data) ? data.data : [];
+
 const fetchTargetOptions = async (language: number): Promise<Option[]> => {
   try {
     const hostUrl = process.env.HOST_API_KEY;
     const res = await axios.get(`${hostUrl}/api/CnfgTargets/get-CnfgTarget`, {
       params: { language },
     });
-    if (Array.isArray(res.data)) {
-      return res.data.map((item: any) => ({
-        value: item.TCTRECID,
-        label: item.TARGETNAME1 || `Target ${item.TCTRECID}`,
-      }));
-    }
-    return [];
+    const list = getSafeArray(res.data);
+    return list.map((item: any) => ({
+      value: item.TCTRECID,
+      label: item.TARGETNAME1 || `Target ${item.TCTRECID}`,
+    }));
   } catch (error) {
     console.error("Error fetching target options:", error);
     return [];
@@ -38,10 +39,8 @@ const fetchUnAssignedCustomerData = async (params: any) => {
   try {
     const hostUrl = process.env.HOST_API_KEY;
     const res = await axios.get(`${hostUrl}/api/Customer/get-UnassignedCustomer`, { params });
-    if (Array.isArray(res.data)) {
-      return res.data.map((item: any, index: number) => ({ ...item, id: item.CIFID || index + 1 }));
-    }
-    return [];
+    const list = getSafeArray(res.data);
+    return list.map((item: any, index: number) => ({ ...item, id: item.CIFID || index + 1 }));
   } catch (error) {
     console.error("Error fetching unassigned customer data:", error);
     return [];
@@ -52,10 +51,10 @@ const fetchCollectorsCustomerData = async (params: any) => {
   try {
     const hostUrl = process.env.HOST_API_KEY;
     const res = await axios.get(`${hostUrl}/api/Collector/get-CollectorUsers`, { params });
-    if (Array.isArray(res.data)) {
-      return res.data.map((item: any, index: number) => ({ ...item, id: item.USERID || index + 1 }));
-    }
-    return [];
+    console.log('res.datares.data',res.data)
+    const list = getSafeArray(res.data);
+    
+    return list.map((item: any, index: number) => ({ ...item, id: item.USERID || index + 1 }));
   } catch (error) {
     console.error("Error fetching collectors data:", error);
     return [];
@@ -71,14 +70,11 @@ const fetchRoleIdOptions = async (language: number): Promise<Option[]> => {
         params: { language },
       }
     );
-    const data = response.data;
-    if (Array.isArray(data)) {
-      return data.map((item: any) => ({
-        value: item.ROLEID,
-        label: item.ROLENAME,
-      }));
-    }
-    return [];
+    const list = getSafeArray(response.data);
+    return list.map((item: any) => ({
+      value: item.ROLEID,
+      label: item.ROLENAME,
+    }));
   } catch (error) {
     console.error("Error fetching Collector Roles options:", error);
     return [];
