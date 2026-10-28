@@ -14,44 +14,68 @@ import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxi
 
 interface BarChartProps {
   title: string;
+  data?: any;
 }
 
-export default function BarChartComponent({ title }: BarChartProps) {
+export default function BarChartComponent({ title, data }: BarChartProps) {
   const language = useSelector(languageParams);
   const { user } = useAuth() as { user: any };
   const [chartData, setChartData] = useState<any[]>([]);
+
+  const processData = (rawData: any) => {
+    if (!rawData) return;
+    const resolved = rawData?.data || rawData;
+    if (Array.isArray(resolved) && resolved.length > 0) {
+      const formattedData = resolved.map((item: any) => ({
+        name: item.LCALLOCATIONGROUP || item.name || "",
+        value: item.CUSTOMERSCOUNT || item.value || 0,
+      }));
+      setChartData(formattedData);
+    } else if (resolved?.PENDING_FOLLOWUP || resolved?.COMPLETE_FOLLOWUP || resolved?.ESCALATED_CASES) {
+      const allCases = [
+        ...(resolved.PENDING_FOLLOWUP || []),
+        ...(resolved.COMPLETE_FOLLOWUP || []),
+        ...(resolved.ESCALATED_CASES || []),
+      ];
+      const counts: Record<string, number> = {};
+      allCases.forEach((item: any) => {
+        const group = item.LCALLOCATIONGROUP || "Unassigned";
+        counts[group] = (counts[group] || 0) + 1;
+      });
+      const formattedData = Object.entries(counts).map(([name, value]) => ({
+        name,
+        value,
+      }));
+      setChartData(formattedData);
+    } else {
+      setChartData([]);
+    }
+  };
 
   const fetchChartData = async () => {
     try {
       const resolvedUserId = user?.UserId || user?.userId || user?.Userid;
       if (!resolvedUserId) return;
-      const hostUrl = process.env.HOST_API_KEY;
+      const hostUrl = process.env.HOST_API_KEY || "https://demo.finnovator.com.sa:8015";
       const response = await axios.get(
-        `${hostUrl}/api/Dashboard/get-DashboardCustomerByGroup`,
+        `${hostUrl}/api/Dashboard`,
         {
           params: { UserID: resolvedUserId, language },
         }
       );
-      const data = response.data;
-      if (data && Array.isArray(data) && data.length > 0) {
-        const formattedData = data.map((item: any) => ({
-          name: item.LCALLOCATIONGROUP || "",
-          value: item.CUSTOMERSCOUNT || 0,
-        }));
-        setChartData(formattedData);
-      } else {
-        setChartData([]);
-      }
+      processData(response.data);
     } catch (err) {
       console.error(err);
     }
   };
 
   useEffect(() => {
-    if (user) {
+    if (data) {
+      processData(data);
+    } else if (user) {
       fetchChartData();
     }
-  }, [user, language]);
+  }, [data, user, language]);
 
   return (
     <div className="relative group rounded-3xl p-[1px] bg-gradient-to-b from-gray-200 to-transparent dark:from-gray-800 transition-all duration-300 hover:shadow-md h-full">

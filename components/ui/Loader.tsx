@@ -16,13 +16,14 @@ const sizeMap: Record<number, string> = {
   128: "w-32 h-32",
   150: "w-[150px] h-[150px]",
   200: "w-[200px] h-[200px]",
+  350: "w-[180px] h-[180px]",
 };
 
 const Loader: React.FC<LoaderProps> = ({ size = 150, className = "" }) => {
   const sizeClass = sizeMap[size] || "w-[150px] h-[150px]";
 
   return (
-    <div className="fixed inset-0 flex justify-center items-center bg-white dark:bg-black z-50">
+    <div className="fixed inset-0 flex justify-center items-center bg-background/80 backdrop-blur-sm z-50">
       <img
         src="/assets/Loading.gif"
         alt="Loading..."

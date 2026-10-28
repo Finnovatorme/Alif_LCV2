@@ -1,28 +1,40 @@
 import type { NextConfig } from "next";
 
-// Read backend URLs from build-time env vars (injected via Docker build-args).
-// Fallbacks keep the Finno/demo server working exactly as before.
-const bsUrl =
-  process.env.BS_API_KEY || "https://demo.finnovator.com.sa:8010";
-const loUrl =
-  process.env.LO_API_KEY || "https://demo.finnovator.com.sa:8011";
-const dmsUrl =
-  process.env.DMS_API_KEY || bsUrl; // DMS falls back to BS, same as before
+const bsApiUrl =
+  process.env.BS_API_KEY ||
+  "https://demo.finnovator.com.sa:8010";
+const loApiUrl =
+  process.env.LO_API_KEY ||
+  "http://173.208.180.149:8084";
+const lmApiUrl =
+  process.env.LM_API_KEY ||
+  "http://173.208.180.149:8065";
+const hostApiUrl =
+  process.env.HOST_API_KEY ||
+  "https://demo.finnovator.com.sa:8015";
+const dmsApiUrl =
+  process.env.DMS_API_KEY ||
+  "http://173.208.180.149:8088";
+const amlApiUrl =
+  process.env.AML_API_KEY ||
+  "http://173.208.180.149:8090";
+const secretKey =
+  process.env.SECRET_KEY ||
+  "4a5e3d8c2b7f1a9e6d8c3b2a7f1e9d6c4a5e3d8c2b7f1a9e6d8c3b2a7f1e9d6c";
 
 const nextConfig: NextConfig = {
   output: "standalone",
   reactStrictMode: false,
 
   env: {
-    BS_API_KEY: bsUrl,
-    LO_API_KEY: loUrl,
-    DMS_API_KEY: dmsUrl,
-    // SECRET_KEY comes from the SECRET_KEY build-arg (GitHub secret).
-    // Fallback is kept ONLY so local dev keeps working; remove it after
-    // the secret is in place.
-    SECRET_KEY:
-      process.env.SECRET_KEY ||
-      "4a5e3d8c2b7f1a9e6d8c3b2a7f1e9d6c4a5e3d8c2b7f1a9e6d8c3b2a7f1e9d6c",
+    BS_API_KEY: bsApiUrl,
+    LO_API_KEY: loApiUrl,
+    LM_API_KEY: lmApiUrl,
+    HOST_API_KEY: hostApiUrl,
+    DMS_API_KEY: dmsApiUrl,
+    AML_API_KEY: amlApiUrl,
+
+    SECRET_KEY: secretKey,
   },
 
   async redirects() {

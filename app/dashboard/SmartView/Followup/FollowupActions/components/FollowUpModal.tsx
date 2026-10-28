@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
-import { X, PlusCircle, History, MessageSquareText, PhoneCall, Copy, Check } from "lucide-react";
+import { X, PlusCircle, History, MessageSquareText } from "lucide-react";
 import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 import { ReusableDataTable } from "@/components/FormComponent/DataGrid";
 import FormComponent, { FormFieldConfig } from "@/components/FormComponent/FormComponent";
@@ -298,11 +298,9 @@ export const FollowUpModal: React.FC<FollowUpModalProps> = ({
 
   const HoverTextCell: React.FC<{
     value: any;
-    title: string;
+    title?: string;
     icon?: React.ReactNode;
   }> = ({ value, title, icon }) => {
-    const [copied, setCopied] = useState(false);
-
     if (!value || value === "-" || String(value).trim() === "") {
       return <span className="text-gray-400 dark:text-gray-500 font-normal">-</span>;
     }
@@ -316,20 +314,15 @@ export const FollowUpModal: React.FC<FollowUpModalProps> = ({
       ? words.slice(0, wordLimit).join(" ") + "..."
       : str;
 
-    const handleCopy = (e: React.MouseEvent) => {
-      e.stopPropagation();
-      navigator.clipboard.writeText(str);
-      setCopied(true);
-      toast.success(`${title} copied to clipboard!`);
-      setTimeout(() => setCopied(false), 2000);
-    };
-
     return (
       <TooltipPrimitive.Provider delayDuration={100}>
         <TooltipPrimitive.Root>
           <TooltipPrimitive.Trigger asChild>
-            <div className="inline-flex items-center gap-1.5 cursor-pointer max-w-[170px] group/hovercell py-1 px-2 rounded-md hover:bg-blue-50/80 dark:hover:bg-blue-950/50 border border-transparent hover:border-blue-200/60 dark:hover:border-blue-800/60 transition-all">
-              <span className="truncate text-xs font-medium text-gray-900 dark:text-gray-200 group-hover/hovercell:text-blue-600 dark:group-hover/hovercell:text-blue-400 underline decoration-dotted decoration-gray-400 dark:decoration-gray-600 underline-offset-4 group-hover/hovercell:decoration-blue-500 dark:group-hover/hovercell:decoration-blue-400 transition-colors">
+            <div className="inline-flex items-center gap-1.5 cursor-pointer max-w-[180px] group/hovercell py-0.5 rounded transition-colors">
+              <span className="text-blue-500/80 group-hover/hovercell:text-blue-600 dark:text-blue-400 dark:group-hover/hovercell:text-blue-300 transition-all shrink-0 group-hover/hovercell:scale-110">
+                {icon || <MessageSquareText className="w-3.5 h-3.5" />}
+              </span>
+              <span className="truncate text-xs font-normal text-gray-900 dark:text-gray-200 group-hover/hovercell:text-blue-600 dark:group-hover/hovercell:text-blue-400 underline decoration-dotted decoration-gray-300 dark:decoration-gray-600 underline-offset-4 group-hover/hovercell:decoration-blue-500 transition-colors">
                 {displaySnippet}
               </span>
             </div>
@@ -337,46 +330,19 @@ export const FollowUpModal: React.FC<FollowUpModalProps> = ({
 
           <TooltipPrimitive.Portal>
             <TooltipPrimitive.Content
-              side="top"
+              side="bottom"
               align="start"
-              sideOffset={8}
-              className="z-[9999] w-[320px] sm:w-[380px] rounded-2xl bg-white dark:bg-[#0f172a] backdrop-blur-xl border border-gray-200 dark:border-slate-800 shadow-[0_20px_50px_rgba(0,0,0,0.25)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.7)] p-4 text-gray-900 dark:text-white animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 outline-none select-text"
+              sideOffset={6}
+              className="z-[9999] w-max min-w-[160px] max-w-[420px] sm:max-w-[480px] rounded-xl bg-white dark:bg-[#0f172a] backdrop-blur-xl border border-gray-200 dark:border-slate-800 shadow-[0_14px_40px_rgba(0,0,0,0.18)] dark:shadow-[0_14px_40px_rgba(0,0,0,0.6)] px-3.5 py-2.5 text-sm text-gray-800 dark:text-slate-100 whitespace-pre-wrap break-words leading-relaxed max-h-72 overflow-y-auto animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 outline-none select-text"
             >
-              {/* ClickUp Style Header */}
-              <div className="flex items-center justify-between gap-2 pb-2.5 mb-2.5 border-b border-gray-200 dark:border-slate-800">
-                <div className="flex items-center gap-2">
-                  <div className="p-1.5 rounded-lg bg-blue-50 dark:bg-blue-950/80 text-blue-600 dark:text-blue-400 border border-blue-200/50 dark:border-blue-800/50">
-                    {icon || <MessageSquareText className="w-3.5 h-3.5" />}
-                  </div>
-                  <span className="text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider">
-                    {title}
-                  </span>
+              {title && (
+                <div className="text-[10px] font-semibold uppercase tracking-wider text-blue-600 dark:text-blue-400 mb-1 flex items-center gap-1">
+                  <span>{title}</span>
                 </div>
-                <button
-                  type="button"
-                  onClick={handleCopy}
-                  className="flex items-center gap-1 text-[11px] font-medium text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 bg-gray-100/60 dark:bg-slate-800/80 hover:bg-gray-100 dark:hover:bg-slate-800 px-2.5 py-1 rounded-md border border-gray-200/60 dark:border-slate-700/80 transition-colors cursor-pointer"
-                  title="Copy to clipboard"
-                >
-                  {copied ? (
-                    <>
-                      <Check className="w-3 h-3 text-emerald-500 dark:text-emerald-400" />
-                      <span className="text-emerald-600 dark:text-emerald-400 font-semibold">Copied</span>
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="w-3 h-3" />
-                      <span>Copy</span>
-                    </>
-                  )}
-                </button>
-              </div>
-
-              {/* ClickUp Style Comment / Details Body */}
-              <div className="bg-gray-50/70 dark:bg-[#090d16] p-3 rounded-xl border border-gray-200/50 dark:border-slate-800/80 text-xs text-gray-800 dark:text-slate-200 whitespace-pre-wrap break-words leading-relaxed max-h-56 overflow-y-auto">
+              )}
+              <div className="text-xs sm:text-sm text-gray-800 dark:text-slate-100 whitespace-pre-wrap break-words leading-relaxed">
                 {str}
               </div>
-
               <TooltipPrimitive.Arrow className="fill-white dark:fill-[#0f172a]" />
             </TooltipPrimitive.Content>
           </TooltipPrimitive.Portal>
@@ -391,13 +357,7 @@ export const FollowUpModal: React.FC<FollowUpModalProps> = ({
       header: "Contact Details",
       cell: ({ row }) => {
         const val = getRowValue(row.original, ["CONTACTDETAILS", "contactDetails"]);
-        return (
-          <HoverTextCell
-            value={val}
-            title="Contact Details"
-            icon={<PhoneCall className="w-3.5 h-3.5" />}
-          />
-        );
+        return <HoverTextCell value={val} title="Contact Details" />;
       },
     },
     {

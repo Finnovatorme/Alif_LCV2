@@ -140,11 +140,14 @@ const page = () => {
 
   const fetchData = async () => {
     setLoading(true);
-    const targetData = await targetGetData(); 
-    if (targetData && targetData.length > 0) {
-      dispatch(targetScreenData(targetData));
+    try {
+      const targetData = await targetGetData(); 
+      dispatch(targetScreenData(Array.isArray(targetData) ? targetData : []));
+    } catch (error) {
+      console.error("Error in fetchData:", error);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   useEffect(() => {
@@ -206,10 +209,15 @@ const page = () => {
         }
       );
 
-      const { data } = response;
+      const rawData = response.data;
+      const list = Array.isArray(rawData)
+        ? rawData
+        : Array.isArray(rawData?.data)
+        ? rawData.data
+        : [];
 
-      const options = data.map((item: any) => ({
-        id: item.VB_LCALLOCATIONGROUP.toString(),
+      const options = list.map((item: any) => ({
+        id: item.VB_LCALLOCATIONGROUP?.toString(),
         tctgrecid: item?.TCTGRECID,
         name: item.LCALLOCATIONGROUP,
         containerId: "Selected Group",
