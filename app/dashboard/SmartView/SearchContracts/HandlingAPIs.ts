@@ -38,7 +38,7 @@ const extractData = (response: any) => {
 
 export const getCustomerContractsList = async (params: any) => {
   try {
-    const hostUrl = process.env.HOST_API_KEY || "http://173.208.180.149:8098";
+    const hostUrl = process.env.HOST_API_KEY || "https://demo.finnovator.com.sa:8015";
     const cifId = typeof params === "object" ? (params.CIFID || params.CifId) : params;
     const langInput = typeof params === "object" ? (params.language || params.Language) : 1;
     const language = typeof langInput === "string" ? (langInput === "ar" ? 2 : 1) : (langInput || 1);
@@ -61,7 +61,7 @@ export const getCustomerContractsList = async (params: any) => {
 
 export const getCustomerDetails = async (params: any) => {
   try {
-    const hostUrl = process.env.HOST_API_KEY || "http://173.208.180.149:8098";
+    const hostUrl = process.env.HOST_API_KEY || "https://demo.finnovator.com.sa:8015";
     const cifId = typeof params === "object" ? (params.CIFID || params.CifId || params.cifId) : params;
     const langInput = typeof params === "object" ? (params.language || params.Language) : 1;
     const language = typeof langInput === "string" ? (langInput === "ar" ? 2 : 1) : (langInput || 1);
@@ -93,7 +93,7 @@ export const getCustomerDetails = async (params: any) => {
 
 export const getCustomerAddress = async (params: any) => {
   try {
-    const hostUrl = process.env.HOST_API_KEY || "http://173.208.180.149:8098";
+    const hostUrl = process.env.HOST_API_KEY || "https://demo.finnovator.com.sa:8015";
     const cifId = typeof params === "object" ? (params.CIFID || params.CifId) : params;
     const langInput = typeof params === "object" ? (params.language || params.Language) : 1;
     const language = typeof langInput === "string" ? (langInput === "ar" ? 2 : 1) : (langInput || 1);
@@ -120,7 +120,7 @@ export const getCustomerAddress = async (params: any) => {
 
 export const getCustomerIncome = async (params: any) => {
   try {
-    const hostUrl = process.env.HOST_API_KEY || "http://173.208.180.149:8098";
+    const hostUrl = process.env.HOST_API_KEY || "https://demo.finnovator.com.sa:8015";
     const cifId = typeof params === "object" ? (params.CIFID || params.CifId || params.cifId) : params;
     const langInput = typeof params === "object" ? (params.language || params.Language) : 1;
     const language = typeof langInput === "string" ? (langInput === "ar" ? 2 : 1) : (langInput || 1);
@@ -147,7 +147,7 @@ export const getCustomerIncome = async (params: any) => {
 
 export const getCustomerLiabilities = async (params: any) => {
   try {
-    const hostUrl = process.env.HOST_API_KEY || "http://173.208.180.149:8098";
+    const hostUrl = process.env.HOST_API_KEY || "https://demo.finnovator.com.sa:8015";
     const cifId = typeof params === "object" ? (params.CIFID || params.CifId || params.cifId) : params;
     const langInput = typeof params === "object" ? (params.language || params.Language) : 1;
     const language = typeof langInput === "string" ? (langInput === "ar" ? 2 : 1) : (langInput || 1);
@@ -174,7 +174,7 @@ export const getCustomerLiabilities = async (params: any) => {
 
 export const getCustomerEmployment = async (params: any) => {
   try {
-    const hostUrl = process.env.HOST_API_KEY || "http://173.208.180.149:8098";
+    const hostUrl = process.env.HOST_API_KEY || "https://demo.finnovator.com.sa:8015";
     const cifId = typeof params === "object" ? (params.CIFID || params.CifId) : params;
     const langInput = typeof params === "object" ? (params.language || params.Language) : 1;
     const language = typeof langInput === "string" ? (langInput === "ar" ? 2 : 1) : (langInput || 1);
@@ -197,7 +197,7 @@ export const getCustomerEmployment = async (params: any) => {
 
 export const getCustomerBank = async (params: any) => {
   try {
-    const hostUrl = process.env.HOST_API_KEY || "http://173.208.180.149:8098";
+    const hostUrl = process.env.HOST_API_KEY || "https://demo.finnovator.com.sa:8015";
     const cifId = typeof params === "object" ? (params.CIFID || params.CifId) : params;
     const langInput = typeof params === "object" ? (params.language || params.Language) : 1;
     const language = typeof langInput === "string" ? (langInput === "ar" ? 2 : 1) : (langInput || 1);
@@ -220,7 +220,7 @@ export const getCustomerBank = async (params: any) => {
 
 export const getCustomerAssetCommodity = async (params: any) => {
   try {
-    const hostUrl = process.env.HOST_API_KEY || "http://173.208.180.149:8098";
+    const hostUrl = process.env.HOST_API_KEY || "https://demo.finnovator.com.sa:8015";
     const cifId = typeof params === "object" ? (params.CIFID || params.CifId) : params;
     const langInput = typeof params === "object" ? (params.language || params.Language) : 1;
     const language = typeof langInput === "string" ? (langInput === "ar" ? 2 : 1) : (langInput || 1);
@@ -259,7 +259,7 @@ export const getTransactionAuditTrail = async (params: any) => {
 
 export const getCustomerContractDetails = async (params: any) => {
   try {
-    const hostUrl = process.env.HOST_API_KEY || "http://173.208.180.149:8098";
+    const hostUrl = process.env.HOST_API_KEY || "https://demo.finnovator.com.sa:8015";
     const loanId = typeof params === "object" ? (params.LOANID || params.LoanId || params.loanId) : params;
     const cifId = typeof params === "object" ? (params.CIFID || params.CifId || params.cifId) : params;
     const langInput = typeof params === "object" ? (params.language || params.Language) : 1;
@@ -283,7 +283,7 @@ export const getCustomerContractDetails = async (params: any) => {
 
 export const getCustomerContractRepayScheduleConsolidated = async (params: any) => {
   try {
-    const hostUrl = process.env.HOST_API_KEY || "http://173.208.180.149:8098";
+    const hostUrl = process.env.HOST_API_KEY || "https://demo.finnovator.com.sa:8015";
     const loanId = typeof params === "object" ? (params.LOANID || params.LoanId || params.loanId) : params;
     const cifId = typeof params === "object" ? (params.CIFID || params.CifId || params.cifId) : params;
     const langInput = typeof params === "object" ? (params.language || params.Language) : 1;
@@ -314,7 +314,7 @@ export const getCustomerContractRepayScheduleConsolidated = async (params: any) 
 
 export const getCustomerContractRepayScheduleAssetWise = async (params: any) => {
   try {
-    const hostUrl = process.env.HOST_API_KEY || "http://173.208.180.149:8098";
+    const hostUrl = process.env.HOST_API_KEY || "https://demo.finnovator.com.sa:8015";
     const loanId = typeof params === "object" ? (params.LOANID || params.LoanId || params.loanId) : params;
     const cifId = typeof params === "object" ? (params.CIFID || params.CifId || params.cifId) : params;
     const langInput = typeof params === "object" ? (params.language || params.Language) : 1;
@@ -358,7 +358,7 @@ export const getRepaymentSchedule = async (params: any) => {
 
 export const getCustomerContractReceipts = async (params: any) => {
   try {
-    const hostUrl = process.env.HOST_API_KEY || "http://173.208.180.149:8098";
+    const hostUrl = process.env.HOST_API_KEY || "https://demo.finnovator.com.sa:8015";
     const loanId = typeof params === "object" ? (params.LOANID || params.LoanId || params.loanId) : params;
     const cifId = typeof params === "object" ? (params.CIFID || params.CifId || params.cifId) : params;
     const langInput = typeof params === "object" ? (params.language || params.Language) : 1;
@@ -390,7 +390,7 @@ export const getReceipts = getCustomerContractReceipts;
 
 export const getCustomerContractReceivables = async (params: any) => {
   try {
-    const hostUrl = process.env.HOST_API_KEY || "http://173.208.180.149:8098";
+    const hostUrl = process.env.HOST_API_KEY || "https://demo.finnovator.com.sa:8015";
     const loanId = typeof params === "object" ? (params.LOANID || params.LoanId || params.loanId) : params;
     const cifId = typeof params === "object" ? (params.CIFID || params.CifId || params.cifId) : params;
     const langInput = typeof params === "object" ? (params.language || params.Language) : 1;
@@ -420,7 +420,7 @@ export const getCustomerContractReceivables = async (params: any) => {
 
 export const getCustomerContractCharges = async (params: any) => {
   try {
-    const hostUrl = process.env.HOST_API_KEY || "http://173.208.180.149:8098";
+    const hostUrl = process.env.HOST_API_KEY || "https://demo.finnovator.com.sa:8015";
     const loanId = typeof params === "object" ? (params.LOANID || params.LoanId || params.loanId) : params;
     const cifId = typeof params === "object" ? (params.CIFID || params.CifId || params.cifId) : params;
     const langInput = typeof params === "object" ? (params.language || params.Language) : 1;

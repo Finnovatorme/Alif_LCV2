@@ -125,11 +125,24 @@ export default function FollowupPage() {
     ];
 
     const handleNavigateToDetails = (row: ContractRow) => {
-        const cifId = row.CIFID || row.CifId || row.id || 1;
+        const cifId = row.CIFID ?? row.CifId ?? row.id ?? null;
+        const realAppId =
+            row.APPID && !isNaN(Number(row.APPID)) && Number(row.APPID) > 0
+                ? Number(row.APPID)
+                : row.AppId && !isNaN(Number(row.AppId)) && Number(row.AppId) > 0
+                    ? Number(row.AppId)
+                    : null;
         const lang = selectedLanguage === "ar" ? 2 : 1;
-        dispatch(hasDashabordParams({ ...row, CIFID: cifId, language: lang }));
-        dispatch(setSelectedUserId(Number(cifId)));
-        localStorage.setItem("followupParams", JSON.stringify({ CIFID: cifId, language: lang, ...row }));
+        dispatch(hasDashabordParams({ ...row, CIFID: cifId, APPID: realAppId, language: lang }));
+        if (cifId && !isNaN(Number(cifId))) {
+            dispatch(setSelectedUserId(Number(cifId)));
+        }
+        if (realAppId) {
+            localStorage.setItem("selectedAppId", String(realAppId));
+        } else {
+            localStorage.removeItem("selectedAppId");
+        }
+        localStorage.setItem("followupParams", JSON.stringify({ CIFID: cifId, APPID: realAppId, language: lang, ...row }));
         router.push("/dashboard/SmartView/Followup/FollowupActions");
     };
 
@@ -194,7 +207,7 @@ export default function FollowupPage() {
     const handleSearch = async (formValues: Record<string, any>) => {
         setLoading(true);
         try {
-            const hostUrl = process.env.HOST_API_KEY;
+            const hostUrl = process.env.HOST_API_KEY || "https://demo.finnovator.com.sa:8015";
             const params = Object.fromEntries(
                 Object.entries(formValues || {}).filter(([, v]) => v !== null && v !== undefined && v !== "")
             );

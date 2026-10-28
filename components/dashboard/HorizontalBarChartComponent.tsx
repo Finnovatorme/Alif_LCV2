@@ -14,45 +14,80 @@ import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxi
 
 interface HorizontalBarChartProps {
   title: string;
+  data?: any;
 }
 
-export default function HorizontalBarChartComponent({ title }: HorizontalBarChartProps) {
+export default function HorizontalBarChartComponent({ title, data }: HorizontalBarChartProps) {
   const language = useSelector(languageParams);
   const { user } = useAuth() as { user: any };
   const [chartData, setChartData] = useState<any[]>([]);
+
+  const processData = (rawData: any) => {
+    if (!rawData) return;
+    const resolved = rawData?.data || rawData;
+    if (Array.isArray(resolved) && resolved.length > 0) {
+      const item = resolved[0];
+      setChartData([
+        { name: "Fully Paid", value: item.FULLYPAID || 0 },
+        { name: "Partially Paid", value: item.PARTIALPAID || 0 },
+        { name: "Not Paid", value: item.NOTPAID || 0 },
+      ]);
+    } else if (resolved?.PENDING_FOLLOWUP || resolved?.COMPLETE_FOLLOWUP || resolved?.ESCALATED_CASES) {
+      const allCases = [
+        ...(resolved.PENDING_FOLLOWUP || []),
+        ...(resolved.COMPLETE_FOLLOWUP || []),
+        ...(resolved.ESCALATED_CASES || []),
+      ];
+      let fullyPaid = 0;
+      let partialPaid = 0;
+      let notPaid = 0;
+
+      allCases.forEach((item: any) => {
+        const overdue = Number(item.TOTALOVERDUEAMOUNT || 0);
+        const collected = Number(item.TOTALAMOUNTCOLLECTED || 0);
+        if (overdue <= 0 && collected > 0) {
+          fullyPaid++;
+        } else if (overdue > 0 && collected > 0) {
+          partialPaid++;
+        } else {
+          notPaid++;
+        }
+      });
+
+      setChartData([
+        { name: "Fully Paid", value: fullyPaid },
+        { name: "Partially Paid", value: partialPaid },
+        { name: "Not Paid", value: notPaid },
+      ]);
+    } else {
+      setChartData([]);
+    }
+  };
 
   const fetchData = async () => {
     try {
       const resolvedUserId = user?.UserId || user?.userId || user?.Userid;
       if (!resolvedUserId) return;
-      const hostUrl = process.env.HOST_API_KEY;
+      const hostUrl = process.env.HOST_API_KEY || "https://demo.finnovator.com.sa:8015";
       const response = await axios.get(
-        `${hostUrl}/api/Dashboard/get-DashboardCollectionPerformance`,
+        `${hostUrl}/api/Dashboard`,
         {
           params: { UserID: resolvedUserId, language },
         }
       );
-
-      if (response.data && Array.isArray(response.data) && response.data.length > 0) {
-        const item = response.data[0];
-        setChartData([
-          { name: "Fully Paid", value: item.FULLYPAID || 0 },
-          { name: "Partially Paid", value: item.PARTIALPAID || 0 },
-          { name: "Not Paid", value: item.NOTPAID || 0 },
-        ]);
-      } else {
-        setChartData([]);
-      }
+      processData(response.data);
     } catch (err) {
       console.error("API error:", err);
     }
   };
 
   useEffect(() => {
-    if (user) {
+    if (data) {
+      processData(data);
+    } else if (user) {
       fetchData();
     }
-  }, [user, language]);
+  }, [data, user, language]);
 
   return (
     <div className="relative group rounded-3xl p-[1px] bg-gradient-to-b from-gray-200 to-transparent dark:from-gray-800 transition-all duration-300 hover:shadow-md h-full">

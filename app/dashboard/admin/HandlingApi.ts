@@ -7,9 +7,16 @@ export const targetGetData = async (language?: string) => {
     });
 
     if (response.status === 200) {
-      return response.data.map((item: any, index: number) => ({
+      const rawData = response.data;
+      const list = Array.isArray(rawData)
+        ? rawData
+        : Array.isArray(rawData?.data)
+        ? rawData.data
+        : [];
+
+      return list.map((item: any, index: number) => ({
         ...item,
-        id: index + 1,
+        id: item.TCTRECID ?? index + 1,
       }));
     } else {
       throw new Error("Failed to fetch data");

@@ -1,10 +1,4 @@
 # Stage 1: Install dependencies
-FROM node:20-alpine AS deps
-WORKDIR /app
-COPY package*.json ./
-RUN npm ci
-
-# Stage 2: Build the app (ALL config baked in HERE)
 FROM node:20-alpine AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
@@ -12,10 +6,19 @@ COPY . .
 
 ARG BS_API_KEY
 ARG LO_API_KEY
+ARG LM_API_KEY
+ARG HOST_API_KEY
 ARG DMS_API_KEY
+ARG AML_API_KEY
 ARG SECRET_KEY
 
-ENV BS_API_KEY=$BS_API_KEY     LO_API_KEY=$LO_API_KEY     DMS_API_KEY=$DMS_API_KEY     SECRET_KEY=$SECRET_KEY
+ENV BS_API_KEY=$BS_API_KEY \
+    LO_API_KEY=$LO_API_KEY \
+    LM_API_KEY=$LM_API_KEY \
+    HOST_API_KEY=$HOST_API_KEY \
+    DMS_API_KEY=$DMS_API_KEY \
+    AML_API_KEY=$AML_API_KEY \
+    SECRET_KEY=$SECRET_KEY
 
 RUN npm run build
 

@@ -9,7 +9,9 @@ import { useRouter } from "next/navigation";
 import { ReusableDataTable } from "@/components/FormComponent/DataGrid";
 import { ColumnDef } from "@tanstack/react-table";
 import { toast } from "sonner";
-import GaugeChart from "@/components/dashboard/GaugeChart";
+import PendingFollowupChart from "@/components/dashboard/PendingFollowupChart";
+import CompletedFollowupChart from "@/components/dashboard/CompletedFollowupChart";
+import EscalatedCasesChart from "@/components/dashboard/EscalatedCasesChart";
 import ProductsPieChart from "@/components/dashboard/ProductsPieChart";
 import TargetAchievement from "@/components/dashboard/TargetAchievement";
 import BarChartComponent from "@/components/dashboard/BarChartComponent";
@@ -33,15 +35,24 @@ export default function Page() {
   const [dashboardLoading, setDashboardLoading] = useState(true);
 
   const handleViewDetailsPage = (row: any) => {
-    const cifId = row.CIFID || row.CifId || row.APPID || row.id;
-    const appId = Number(cifId);
-    if (cifId) {
-      dispatch(setSelectedUserId(appId));
-      dispatch(hasDashabordParams({ ...row, CIFID: cifId, hideButton: false }));
-      localStorage.setItem("selectedAppId", String(cifId));
+    const rawCif = row.CIFID ?? row.CifId ?? row.id;
+    const cifId = rawCif !== undefined && rawCif !== null ? rawCif : "";
+    const realAppId =
+      row.APPID && !isNaN(Number(row.APPID)) && Number(row.APPID) > 0
+        ? Number(row.APPID)
+        : null;
+
+    if (cifId !== "") {
+      dispatch(setSelectedUserId(Number(cifId) || 0));
+      dispatch(hasDashabordParams({ ...row, CIFID: cifId, APPID: realAppId, hideButton: false }));
+      if (realAppId) {
+        localStorage.setItem("selectedAppId", String(realAppId));
+      } else {
+        localStorage.removeItem("selectedAppId");
+      }
       localStorage.setItem(
         "followupParams",
-        JSON.stringify({ ...row, CIFID: cifId, hideButton: false })
+        JSON.stringify({ ...row, CIFID: cifId, APPID: realAppId, hideButton: false })
       );
     }
     router.push("/dashboard/SmartView/Followup/FollowupActions");
@@ -49,10 +60,24 @@ export default function Page() {
 
   const columns: ColumnDef<any>[] = [
     { accessorKey: "CIFID", header: "Cif ID" },
+    {
+      accessorKey: "CUSTOMERNAME",
+      header: "Customer Name",
+      cell: ({ row }) => row.original.CUSTOMERNAME || "-",
+    },
     { accessorKey: "USERID", header: "User ID" },
     { accessorKey: "COLLECTORNAME", header: "Collector Name" },
     { accessorKey: "LCALLOCATIONGROUP", header: "LC Allocation Group" },
-    { accessorKey: "TOTALOVERDUEAMOUNT", header: "Total Overdue Amount" },
+    {
+      accessorKey: "TOTALOVERDUEAMOUNT",
+      header: "Total Overdue Amount",
+      cell: ({ row }) => {
+        const val = row.original.TOTALOVERDUEAMOUNT;
+        return val !== undefined && val !== null && !isNaN(Number(val))
+          ? Number(val).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+          : "-";
+      },
+    },
     {
       id: "actions",
       header: "Action",
@@ -70,38 +95,89 @@ export default function Page() {
   ];
 
   useEffect(() => {
-    if (loading || !user) return;
+    let isMounted = true;
 
     const fetchDashboardData = async () => {
-      const resolvedUserId = user.UserId || user.userId || user.Userid;
-      if (!resolvedUserId) return;
+      let resolvedUserId: string | number | undefined =
+        user?.UserId ||
+        user?.userId ||
+        user?.Userid ||
+        user?.USERID ||
+        user?.username ||
+        user?.Username ||
+        user?.Username1 ||
+        user?.id;
+
+      if (!resolvedUserId && typeof window !== "undefined") {
+        try {
+          const stored = localStorage.getItem("authData");
+          if (stored) {
+            const p = JSON.parse(stored);
+            resolvedUserId =
+              p?.UserId ||
+              p?.userId ||
+              p?.Userid ||
+              p?.USERID ||
+              p?.username ||
+              p?.Username ||
+              p?.Username1 ||
+              p?.id;
+          }
+        } catch (e) {
+          console.error("Error reading authData from localStorage:", e);
+        }
+      }
+
+      if (!resolvedUserId) {
+        resolvedUserId = "aadnan";
+      }
 
       setDashboardLoading(true);
       try {
-        const hostUrl = process.env.HOST_API_KEY;
-        const response = await axios.get(
-          `${hostUrl}/api/Dashboard/get-UserDashboard`,
-          {
-            params: { UserId: resolvedUserId, Recstatus: true, language },
-          }
-        );
-        const data = response.data;
-        setFollowUp(data);
+        const hostUrl =
+          process.env.HOST_API_KEY || "https://demo.finnovator.com.sa:8015";
+        const langCode = language === "ar" || language === 2 ? 2 : 1;
+        const response = await axios.get(`${hostUrl}/api/Dashboard`, {
+          params: {
+            UserID: resolvedUserId,
+            UserId: resolvedUserId,
+            Recstatus: true,
+            language: langCode,
+          },
+        });
+        if (!isMounted) return;
+        const resData = response.data?.data || response.data;
+        const normalized = {
+          COMPLETE_FOLLOWUP: Array.isArray(resData?.COMPLETE_FOLLOWUP)
+            ? resData.COMPLETE_FOLLOWUP
+            : [],
+          ESCALATED_CASES: Array.isArray(resData?.ESCALATED_CASES)
+            ? resData.ESCALATED_CASES
+            : [],
+          PENDING_FOLLOWUP: Array.isArray(resData?.PENDING_FOLLOWUP)
+            ? resData.PENDING_FOLLOWUP
+            : [],
+        };
+        setFollowUp(normalized);
         setFollowUpCount(
-          (data.COMPLETE_FOLLOWUP?.length || 0) +
-          (data.ESCALATED_CASES?.length || 0) +
-          (data.PENDING_FOLLOWUP?.length || 0)
+          normalized.COMPLETE_FOLLOWUP.length +
+            normalized.ESCALATED_CASES.length +
+            normalized.PENDING_FOLLOWUP.length
         );
       } catch (err) {
         console.error("Dashboard data fetch error:", err);
-        toast.error("Failed to load dashboard data");
+        if (isMounted) toast.error("Failed to load dashboard data");
       } finally {
-        setDashboardLoading(false);
+        if (isMounted) setDashboardLoading(false);
       }
     };
 
     fetchDashboardData();
-  }, [user, loading, language]);
+
+    return () => {
+      isMounted = false;
+    };
+  }, [user, language]);
 
   if (loading) return <div className="flex h-screen items-center justify-center"><div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div></div>;
 
@@ -123,20 +199,20 @@ export default function Page() {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 mb-10">
-        <GaugeChart
+        <PendingFollowupChart
           title="Pending Followup"
           total={followUp.PENDING_FOLLOWUP?.length || 0}
-          chartData={followUpCount}
+          max={followUpCount}
         />
-        <GaugeChart
+        <CompletedFollowupChart
           title="Completed Followup"
           total={followUp.COMPLETE_FOLLOWUP?.length || 0}
-          chartData={followUpCount}
+          max={followUpCount}
         />
-        <GaugeChart
+        <EscalatedCasesChart
           title="Escalated Cases"
           total={followUp.ESCALATED_CASES?.length || 0}
-          chartData={followUpCount}
+          max={followUpCount}
         />
         <ProductsPieChart
           title="FollowUps"
@@ -144,8 +220,9 @@ export default function Page() {
         />
         <TargetAchievement
           title="Target General"
-          allocated={200}
-          achieved={150}
+          allocated={followUpCount || 20}
+          achieved={followUp.COMPLETE_FOLLOWUP?.length || 0}
+          data={followUp}
         />
       </div>
 
@@ -161,7 +238,7 @@ export default function Page() {
             />
           </div>
           <div className="xl:col-span-5">
-            <BarChartComponent title="Customer Distribution By Group" />
+            <BarChartComponent title="Customer Distribution By Group" data={followUp} />
           </div>
         </div>
 
@@ -176,7 +253,7 @@ export default function Page() {
             />
           </div>
           <div className="xl:col-span-5">
-            <HorizontalBarChartComponent title="Collection Performance" />
+            <HorizontalBarChartComponent title="Collection Performance" data={followUp} />
           </div>
         </div>
 
@@ -191,7 +268,7 @@ export default function Page() {
             />
           </div>
           <div className="xl:col-span-5">
-            <FollowupStatusChart title="Follow-up Status Distribution" />
+            <FollowupStatusChart title="Follow-up Status Distribution" data={followUp} />
           </div>
         </div>
       </div>

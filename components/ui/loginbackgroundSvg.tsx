@@ -1,29 +1,44 @@
 "use client";
 import { motion } from "framer-motion";
 
+const PARTICLES = [
+  { cx: 120, cy: 150, r: 2.5, opacity: 0.75, y: -80, x: 25, duration: 16, delay: 0.5 },
+  { cx: 340, cy: 420, r: 3.2, opacity: 0.82, y: -120, x: -30, duration: 22, delay: 1.2 },
+  { cx: 580, cy: 230, r: 1.8, opacity: 0.70, y: -70, x: 40, duration: 18, delay: 2.1 },
+  { cx: 720, cy: 680, r: 4.1, opacity: 0.85, y: -150, x: -20, duration: 24, delay: 2.8 },
+  { cx: 890, cy: 310, r: 2.2, opacity: 0.72, y: -90, x: 35, duration: 15, delay: 3.5 },
+  { cx: 1050, cy: 540, r: 3.8, opacity: 0.80, y: -110, x: -45, duration: 20, delay: 4.1 },
+  { cx: 210, cy: 750, r: 2.0, opacity: 0.68, y: -65, x: 15, duration: 17, delay: 4.8 },
+  { cx: 450, cy: 890, r: 4.5, opacity: 0.84, y: -140, x: -35, duration: 25, delay: 5.4 },
+  { cx: 670, cy: 120, r: 1.6, opacity: 0.74, y: -85, x: 30, duration: 19, delay: 6.0 },
+  { cx: 820, cy: 820, r: 3.0, opacity: 0.78, y: -100, x: -25, duration: 21, delay: 6.7 },
+  { cx: 960, cy: 190, r: 2.7, opacity: 0.81, y: -130, x: 40, duration: 23, delay: 7.3 },
+  { cx: 1120, cy: 780, r: 3.5, opacity: 0.76, y: -95, x: -15, duration: 14, delay: 8.0 },
+];
+
 export default function LoginBackgroundSvg() {
   return (
     <div className="fixed inset-0 pointer-events-none -z-10">
       <svg className="absolute inset-0 w-full h-full">
-        {[...Array(12)].map((_, i) => (
+        {PARTICLES.map((p, i) => (
           <motion.circle
             key={i}
-            cx={Math.random() * 1200}
-            cy={Math.random() * 1000}
-            r={1.4 + Math.random() * 3.5}
+            cx={p.cx}
+            cy={p.cy}
+            r={p.r}
             fill="#3a8bc9"
             initial={{ opacity: 0 }}
             animate={{
-              opacity: [0, 0.7 + Math.random() * 0.15, 0.35],
-              y: [0, -60 - Math.random() * 120, 0],
-              x: [0, (Math.random() - 0.5) * 100, 0],
+              opacity: [0, p.opacity, 0.35],
+              y: [0, p.y, 0],
+              x: [0, p.x, 0],
             }}
             transition={{
-              duration: 12 + Math.random() * 14,
+              duration: p.duration,
               repeat: Infinity,
               repeatType: "reverse",
               ease: "easeInOut",
-              delay: i * 0.7 + Math.random() * 2,
+              delay: p.delay,
             }}
           />
         ))}

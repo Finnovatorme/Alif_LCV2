@@ -9,36 +9,26 @@ import { Actions } from "./components/Actions";
 import { FinancialCustomerDetails } from "./components/FinancialCustomerDetails";
 import { DemographicCustomerDetails } from "./components/DemographicCustomerDetails";
 
-export const followupCustomerDetailsGet = async (params: Record<string, any>) => {
-  try {
-    const hostUrl = process.env.HOST_API_KEY;
-    const response = await axios.get(
-      `${hostUrl}/api/Customer/get-CustomerDetails`,
-      { params }
-    );
-    const followupCustomerData = (response.data || []).map((item: any, index: number) => {
-      return { ...item, id: index + 1 };
-    });
-    return followupCustomerData;
-  } catch (error: any) {
-    return { error: error?.message || "Error fetching customer details" };
-  }
-};
+import {
+  followupCustomerDetailsGet,
+  followupDetailsGet,
+  getNotificationNames,
+  getNotificationTemplate,
+  insertFollowupNotification,
+  getAllNotifications,
+  getMessageHistory,
+  getCustomerContractsList,
+} from "./HandlingAPIs";
 
-export const followupDetailsGet = async (params: Record<string, any>) => {
-  try {
-    const hostUrl = process.env.HOST_API_KEY;
-    const response = await axios.get(
-      `${hostUrl}/api/TranFollowUpDetails/get-FollowUpDetails`,
-      { params: params?.params ? params.params : params }
-    );
-    const followupData = (response.data || []).map((item: any, index: number) => {
-      return { ...item, id: index + 1 };
-    });
-    return followupData;
-  } catch (error: any) {
-    return { error: error?.message || "Error fetching followup details" };
-  }
+export {
+  followupCustomerDetailsGet,
+  followupDetailsGet,
+  getNotificationNames,
+  getNotificationTemplate,
+  insertFollowupNotification,
+  getAllNotifications,
+  getMessageHistory,
+  getCustomerContractsList,
 };
 
 export default function FollowupActionsPage() {
@@ -48,31 +38,34 @@ export default function FollowupActionsPage() {
   const [loading, setLoading] = useState(true);
   const [customerDetails, setCustomerDetails] = useState<Record<string, any>>({});
   const [followupDetails, setFollowupDetails] = useState<Record<string, any>>({});
-  const [cifId, setCifId] = useState<number | string>(1);
+  const [loanContracts, setLoanContracts] = useState<any[]>([]);
+  const [cifId, setCifId] = useState<number | string | null>(null);
   const [language, setLanguage] = useState<number>(1);
 
   useEffect(() => {
-    let activeCifId: number | string = 1;
+    let activeCifId: number | string | null = null;
     let activeLang: number = selectedLanguage === "ar" ? 2 : 1;
 
-    if (reduxParams && (reduxParams.CIFID || reduxParams.CifId || reduxParams.APPID || reduxParams.id)) {
-      activeCifId = reduxParams.CIFID || reduxParams.CifId || reduxParams.APPID || reduxParams.id;
+    if (reduxParams && (reduxParams.CIFID !== undefined && reduxParams.CIFID !== null && reduxParams.CIFID !== "")) {
+      activeCifId = reduxParams.CIFID;
+      if (reduxParams.language) activeLang = reduxParams.language;
+    } else if (reduxParams && (reduxParams.CifId || reduxParams.id)) {
+      activeCifId = reduxParams.CifId || reduxParams.id;
       if (reduxParams.language) activeLang = reduxParams.language;
     } else {
       const saved = localStorage.getItem("followupParams");
-      const savedAppId = localStorage.getItem("selectedAppId");
       if (saved) {
         try {
           const parsed = JSON.parse(saved);
-          if (parsed.CIFID || parsed.CifId || parsed.APPID || parsed.id) {
-            activeCifId = parsed.CIFID || parsed.CifId || parsed.APPID || parsed.id;
+          if (parsed.CIFID !== undefined && parsed.CIFID !== null && parsed.CIFID !== "") {
+            activeCifId = parsed.CIFID;
+          } else if (parsed.CifId || parsed.id) {
+            activeCifId = parsed.CifId || parsed.id;
           }
           if (parsed.language) activeLang = parsed.language;
         } catch (e) {
           console.error("Error parsing saved followup params", e);
         }
-      } else if (savedAppId) {
-        activeCifId = savedAppId;
       }
     }
 
@@ -82,11 +75,18 @@ export default function FollowupActionsPage() {
     const loadData = async () => {
       setLoading(true);
       try {
-        const queryParams = { CIFID: activeCifId, language: activeLang };
+        const queryParams = { CIFID: activeCifId ?? "", language: activeLang };
 
-        const [custRes, folRes] = await Promise.all([
-          followupCustomerDetailsGet(queryParams),
-          followupDetailsGet(queryParams),
+        const [custRes, folRes, contractsRes] = await Promise.all([
+          activeCifId !== null && activeCifId !== undefined
+            ? followupCustomerDetailsGet(queryParams)
+            : null,
+          activeCifId !== null && activeCifId !== undefined
+            ? followupDetailsGet(queryParams)
+            : null,
+          activeCifId !== null && activeCifId !== undefined
+            ? getCustomerContractsList(queryParams)
+            : [],
         ]);
 
         if (Array.isArray(custRes) && custRes.length > 0) {
@@ -99,6 +99,12 @@ export default function FollowupActionsPage() {
           setFollowupDetails(folRes[0]);
         } else if (folRes && typeof folRes === "object" && !folRes.error) {
           setFollowupDetails(folRes);
+        }
+
+        if (Array.isArray(contractsRes)) {
+          setLoanContracts(contractsRes);
+        } else if (contractsRes?.data && Array.isArray(contractsRes.data)) {
+          setLoanContracts(contractsRes.data);
         }
       } catch (err) {
         console.error("Error loading followup action data:", err);
@@ -120,6 +126,7 @@ export default function FollowupActionsPage() {
         cifId={cifId}
         customerDetails={customerDetails}
         followupDetails={followupDetails}
+        loanContracts={loanContracts}
       />
 
       {loading ? (

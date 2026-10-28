@@ -14,62 +14,112 @@ import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAx
 
 interface FollowupStatusChartProps {
   title: string;
+  data?: any;
 }
 
-export default function FollowupStatusChart({ title }: FollowupStatusChartProps) {
+export default function FollowupStatusChart({ title, data }: FollowupStatusChartProps) {
   const language = useSelector(languageParams);
   const { user } = useAuth() as { user: any };
   const [chartData, setChartData] = useState<any[]>([]);
   const [keys, setKeys] = useState<string[]>([]);
 
+  const processData = (rawData: any, resultOptions: string[] = []) => {
+    if (!rawData) return;
+    const resolved = rawData?.data || rawData;
+
+    if (Array.isArray(resolved) && resolved.length > 0) {
+      const subResultsSet = new Set<string>();
+      resolved.forEach((item: any) => {
+        if (item.FOLLOWUPSUBRESULT) subResultsSet.add(item.FOLLOWUPSUBRESULT);
+      });
+      const subResults = Array.from(subResultsSet);
+      setKeys(subResults);
+
+      const formattedData = resultOptions.map((result: string) => {
+        const dataPoint: any = { name: result };
+        subResults.forEach((subResult) => {
+          const match = resolved.find((item: any) => item.FOLLOWUPRESULT === result && item.FOLLOWUPSUBRESULT === subResult);
+          dataPoint[subResult] = match ? match.CUSTOMERSCOUNT : 0;
+        });
+        return dataPoint;
+      });
+      setChartData(formattedData);
+    } else if (resolved?.PENDING_FOLLOWUP || resolved?.COMPLETE_FOLLOWUP || resolved?.ESCALATED_CASES) {
+      const pendingList = resolved.PENDING_FOLLOWUP || [];
+      const completeList = resolved.COMPLETE_FOLLOWUP || [];
+      const escalatedList = resolved.ESCALATED_CASES || [];
+
+      const groupSet = new Set<string>();
+      [...pendingList, ...completeList, ...escalatedList].forEach((i: any) => {
+        if (i.LCALLOCATIONGROUP) groupSet.add(i.LCALLOCATIONGROUP);
+      });
+      const allGroups = Array.from(groupSet);
+      const usedKeys = allGroups.length > 0 ? allGroups : ["Total"];
+      setKeys(usedKeys);
+
+      const buildDataPoint = (name: string, list: any[]) => {
+        const dp: any = { name };
+        if (allGroups.length > 0) {
+          allGroups.forEach((grp) => {
+            dp[grp] = list.filter((i: any) => i.LCALLOCATIONGROUP === grp).length;
+          });
+        } else {
+          dp["Total"] = list.length;
+        }
+        return dp;
+      };
+
+      setChartData([
+        buildDataPoint("Pending", pendingList),
+        buildDataPoint("Completed", completeList),
+        buildDataPoint("Escalated", escalatedList),
+      ]);
+    } else {
+      setChartData([]);
+    }
+  };
+
   useEffect(() => {
+    if (data) {
+      processData(data);
+      return;
+    }
+
     const fetchData = async () => {
       const resolvedUserId = user?.UserId || user?.userId || user?.Userid;
       if (!resolvedUserId) return;
 
       try {
-        const bsUrl = process.env.BS_API_KEY || "http://173.208.180.149:8081";
-        const hostUrl = process.env.HOST_API_KEY;
+        const bsUrl = process.env.BS_API_KEY || "https://demo.finnovator.com.sa:8010";
+        const hostUrl = process.env.HOST_API_KEY || "https://demo.finnovator.com.sa:8015";
 
-        // Fetch Result options
-        const resultRes = await axios.get(
-          `${bsUrl}/api/CnfgVbValues/GetCnfgVbValues/COLLFOLLOWUPRESULT`,
-          { params: { language } }
-        );
-        const resultOptions = resultRes.data.map((item: any) => item.VALDESC1);
+        let resultOptions: string[] = [];
+        try {
+          const resultRes = await axios.get(
+            `${bsUrl}/api/CnfgVbValues/GetCnfgVbValues/COLLFOLLOWUPRESULT`,
+            { params: { language } }
+          );
+          console.log('resultRes---',resultRes)
+          if (Array.isArray(resultRes.data)) {
+            resultOptions = resultRes.data.map((item: any) => item.VALDESC1);
+          }
+        } catch (e) {
+          // ignore optional vb options failure
+        }
 
-        // Fetch Followup data
         const dataRes = await axios.get(
-          `${hostUrl}/api/Dashboard/get-DashboardCustomerFollowupStatus`,
+          `${hostUrl}/api/Dashboard`,
           { params: { UserID: resolvedUserId, language } }
         );
 
-        const apiData = dataRes.data;
-        const subResultsSet = new Set<string>();
-        apiData.forEach((item: any) => {
-          if (item.FOLLOWUPSUBRESULT) subResultsSet.add(item.FOLLOWUPSUBRESULT);
-        });
-        const subResults = Array.from(subResultsSet);
-        setKeys(subResults);
-
-        // Recharts prefers data grouped by the X-axis (Result)
-        const formattedData = resultOptions.map((result: string) => {
-          const dataPoint: any = { name: result };
-          subResults.forEach((subResult) => {
-            const match = apiData.find((item: any) => item.FOLLOWUPRESULT === result && item.FOLLOWUPSUBRESULT === subResult);
-            dataPoint[subResult] = match ? match.CUSTOMERSCOUNT : 0;
-          });
-          return dataPoint;
-        });
-
-        setChartData(formattedData);
+        processData(dataRes.data, resultOptions);
       } catch (error) {
         console.error("Error fetching follow-up status data:", error);
       }
     };
 
     if (user) fetchData();
-  }, [user, language]);
+  }, [data, user, language]);
 
   const COLORS = ["#0ea5e9", "#3b82f6", "#8b5cf6", "#d946ef", "#f43f5e"];
 
