@@ -32,7 +32,10 @@ jobs:
           build-args: |
             BS_API_KEY=${{ secrets.BS_LOCAL_API_URL }}
             LO_API_KEY=${{ secrets.LO_LOCAL_API_URL }}
+            LM_API_KEY=${{ secrets.LM_LOCAL_API_URL }}
+            HOST_API_KEY=${{ secrets.HOST_LOCAL_API_URL }}
             DMS_API_KEY=${{ secrets.DMS_LOCAL_API_URL }}
+            AML_API_KEY=${{ secrets.AML_LOCAL_API_URL }}
             SECRET_KEY=${{ secrets.LC_SECRET_KEY }}
 
   # =========================================================
@@ -60,8 +63,12 @@ jobs:
         env:
           BS_API_KEY: ${{ secrets.BS_FINNO_API_URL }}
           LO_API_KEY: ${{ secrets.LO_FINNO_API_URL }}
+          LM_API_KEY: ${{ secrets.LM_FINNO_API_URL }}
+          HOST_API_KEY: ${{ secrets.HOST_FINNO_API_URL }}
           DMS_API_KEY: ${{ secrets.DMS_FINNO_API_URL }}
+          AML_API_KEY: ${{ secrets.AML_FINNO_API_URL }}
           SECRET_KEY: ${{ secrets.LC_SECRET_KEY }}
+
 
       - name: Stop PM2 on Finno VPS
         uses: appleboy/ssh-action@v1.0.3
