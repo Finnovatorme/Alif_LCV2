@@ -1,23 +1,23 @@
 import type { NextConfig } from "next";
 
-const bsApiUrl =
-  process.env.BS_API_KEY ||
-  "https://demo.finnovator.com.sa:8010";
-const loApiUrl =
-  process.env.LO_API_KEY ||
-  "http://173.208.180.149:8084";
-const lmApiUrl =
-  process.env.LM_API_KEY ||
-  "http://173.208.180.149:8065";
-const hostApiUrl =
-  process.env.HOST_API_KEY ||
-  "https://demo.finnovator.com.sa:8015";
-const dmsApiUrl =
-  process.env.DMS_API_KEY ||
-  "http://173.208.180.149:8088";
-const amlApiUrl =
-  process.env.AML_API_KEY ||
-  "http://173.208.180.149:8090";
+//const bsApiUrl =
+  //process.env.BS_API_KEY ||
+ // "https://demo.finnovator.com.sa:8010";
+//const loApiUrl =
+//  process.env.LO_API_KEY ||
+ // "http://173.208.180.149:8084";
+//const lmApiUrl =
+ // process.env.LM_API_KEY ||
+ // "http://173.208.180.149:8065";
+//const hostApiUrl =
+//  process.env.HOST_API_KEY ||
+ // "https://demo.finnovator.com.sa:8015";
+//const dmsApiUrl =
+ // process.env.DMS_API_KEY ||
+ // "http://173.208.180.149:8088";
+//const amlApiUrl =
+ // process.env.AML_API_KEY ||
+ // "http://173.208.180.149:8090";
 const secretKey =
   process.env.SECRET_KEY ||
   "4a5e3d8c2b7f1a9e6d8c3b2a7f1e9d6c4a5e3d8c2b7f1a9e6d8c3b2a7f1e9d6c";
