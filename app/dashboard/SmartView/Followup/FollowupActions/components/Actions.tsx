@@ -32,6 +32,7 @@ import { vbValue, Option } from "@/utils/dropDownApis";
 import { toast } from "sonner";
 
 import { FollowUpModal } from "./FollowUpModal";
+import { EscalateModal } from "./EscalateModal";
 import {
   getNotificationNames,
   getNotificationTemplate,
@@ -112,9 +113,9 @@ export const Actions: React.FC<ActionsProps> = ({
         null;
       const resolvedCifId: number | null =
         rawCif !== null &&
-        rawCif !== undefined &&
-        !isNaN(Number(rawCif)) &&
-        Number(rawCif) > 0
+          rawCif !== undefined &&
+          !isNaN(Number(rawCif)) &&
+          Number(rawCif) > 0
           ? Number(rawCif)
           : null;
 
@@ -126,9 +127,9 @@ export const Actions: React.FC<ActionsProps> = ({
         null;
       const resolvedAppId: number | null =
         rawAppId !== null &&
-        rawAppId !== undefined &&
-        !isNaN(Number(rawAppId)) &&
-        Number(rawAppId) > 0
+          rawAppId !== undefined &&
+          !isNaN(Number(rawAppId)) &&
+          Number(rawAppId) > 0
           ? Number(rawAppId)
           : null;
 
@@ -141,9 +142,9 @@ export const Actions: React.FC<ActionsProps> = ({
         null;
       const resolvedAppCifId: number | null =
         rawAppCifId !== null &&
-        rawAppCifId !== undefined &&
-        !isNaN(Number(rawAppCifId)) &&
-        Number(rawAppCifId) > 0
+          rawAppCifId !== undefined &&
+          !isNaN(Number(rawAppCifId)) &&
+          Number(rawAppCifId) > 0
           ? Number(rawAppCifId)
           : null;
 
@@ -157,9 +158,9 @@ export const Actions: React.FC<ActionsProps> = ({
         null;
       const resolvedIdNumber: string | null =
         rawIdNumber &&
-        String(rawIdNumber).trim() !== "" &&
-        String(rawIdNumber).toLowerCase() !== "string" &&
-        String(rawIdNumber) !== "—"
+          String(rawIdNumber).trim() !== "" &&
+          String(rawIdNumber).toLowerCase() !== "string" &&
+          String(rawIdNumber) !== "—"
           ? String(rawIdNumber).trim()
           : null;
 
@@ -220,6 +221,7 @@ export const Actions: React.FC<ActionsProps> = ({
   const [openCallModal, setOpenCallModal] = useState(false);
   const [openCommunicationModal, setOpenCommunicationModal] = useState(false);
   const [openFollowUpModal, setOpenFollowUpModal] = useState(false);
+  const [openEscalateModal, setOpenEscalateModal] = useState(false);
   const [commType, setCommType] = useState<"sms" | "whatsapp" | "email">("sms");
 
   // Dynamic template & history states
@@ -426,12 +428,18 @@ export const Actions: React.FC<ActionsProps> = ({
         const resolved = resolveIds(currentContracts);
 
         const payload: GetNotificationTemplatePayload = {
-          notificationid: Number(notifId),
-          cifid: resolved.cifId,       // null if not available
-          appcifid: resolved.appCifId, // null if not available
-          appid: resolved.appId,       // null if not available
-          idnumber: resolved.idNumber, // null if not available
-          language: language,
+          notificationid: 3,
+          cifid: 40403,
+          appcifid: 0,
+          appid: 60364,
+          idnumber: "string",
+          language: 1
+          // notificationid: Number(notifId),
+          // cifid: resolved.cifId,       // null if not available
+          // appcifid: resolved.appCifId, // null if not available
+          // appid: resolved.appId,       // null if not available
+          // idnumber: resolved.idNumber, // null if not available
+          // language: language,
         };
 
         // Hit POST /api/Notification/getnotificationtemplate
@@ -637,19 +645,22 @@ export const Actions: React.FC<ActionsProps> = ({
       const resolved = resolveIds(currentContracts);
 
       const payload: InsertFollowupNotificationPayload = {
-        notificationid: Number(selectedTemplate?.id || 0),
+        // notificationid: Number(selectedTemplate?.id || 0),
         vB_NOTIFICATIONTYPE: Number(typeCode),
         notificationtext: messageContent,
-        cifid: resolved.cifId,       // null if not available
-        appid: resolved.appId,       // null if not available
-        idnumber: resolved.idNumber, // null if not available
+        // cifid: resolved.cifId,    
+        // appid: resolved.appId,    
+        // idnumber: resolved.idNumber, 
         updateby: activeUpdateBy,
+        notificationid: 3,
+        cifid: 40403,
+        // appcifid: 0,
+        appid: 60364,
+        idnumber: "string",
+        // language: 1
       };
 
-      // Hit POST /api/Notification/insertfollowupnotification
-      await insertFollowupNotification(payload);
-
-      // Prepend newly sent message to History list
+      const res = await insertFollowupNotification(payload);
       const now = new Date();
       const newHistoryItem: FormattedHistoryItem = {
         id: Date.now(),
@@ -664,15 +675,17 @@ export const Actions: React.FC<ActionsProps> = ({
       };
 
       setHistoryList((prev) => [newHistoryItem, ...prev]);
+      if (res?.responsetype === "SUCCESS") {
+        toast.success(
+          `${commType === "sms"
+            ? "SMS"
+            : commType === "whatsapp"
+              ? "WhatsApp"
+              : "Email"
+          } sent successfully!`
+        );
+      }
 
-      toast.success(
-        `${commType === "sms"
-          ? "SMS"
-          : commType === "whatsapp"
-            ? "WhatsApp"
-            : "Email"
-        } sent successfully!`
-      );
     } catch (err: any) {
       console.error("Error sending communication:", err);
       toast.error("Failed to send message, please try again");
@@ -756,7 +769,7 @@ export const Actions: React.FC<ActionsProps> = ({
               Follow up
             </Button>
 
-            <Button className="h-10 px-6 rounded-xl bg-red-800 hover:bg-red-900 text-white text-xs font-bold shadow-sm cursor-pointer transition-all active:scale-95">
+            <Button onClick={() => setOpenEscalateModal(true)} className="h-10 px-6 rounded-xl bg-red-800 hover:bg-red-900 text-white text-xs font-bold shadow-sm cursor-pointer transition-all active:scale-95">
               Escalate
             </Button>
           </div>
@@ -957,8 +970,8 @@ export const Actions: React.FC<ActionsProps> = ({
                         type="button"
                         onClick={() => handleSelectTemplate(idx)}
                         className={`p-3.5 rounded-xl border text-left transition-all flex flex-col gap-1 shadow-2xs cursor-pointer ${selectedTemplateIndex === idx
-                            ? "border-blue-600 bg-white dark:bg-gray-800 ring-2 ring-blue-500/30"
-                            : "border-gray-200/80 dark:border-gray-700/80 bg-white/80 dark:bg-gray-800/80 hover:bg-white dark:hover:bg-gray-800"
+                          ? "border-blue-600 bg-white dark:bg-gray-800 ring-2 ring-blue-500/30"
+                          : "border-gray-200/80 dark:border-gray-700/80 bg-white/80 dark:bg-gray-800/80 hover:bg-white dark:hover:bg-gray-800"
                           }`}
                       >
                         <strong className="text-xs font-bold text-gray-900 dark:text-white truncate">
@@ -1036,6 +1049,16 @@ export const Actions: React.FC<ActionsProps> = ({
         onClose={() => setOpenFollowUpModal(false)}
         cifId={activeCifId ?? ""}
         followupData={followupDetails}
+      />
+
+      {/* 4. ESCALATE CASE MODAL */}
+      <EscalateModal
+        isOpen={openEscalateModal}
+        onClose={() => setOpenEscalateModal(false)}
+        cifId={activeCifId}
+        customerDetails={customerDetails}
+        followupDetails={followupDetails}
+        loanContracts={loanContracts}
       />
     </>
   );

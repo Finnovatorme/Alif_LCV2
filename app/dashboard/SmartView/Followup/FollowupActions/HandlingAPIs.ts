@@ -287,3 +287,84 @@ export const getCustomerContractsList = async (params: {
     return [];
   }
 };
+
+
+export interface EscalationUserItem {
+  USERID: string;
+  USERNAME: string;
+  [key: string]: any;
+}
+
+export interface AddEscalationPayload {
+  financierid: number;
+  cifid: number;
+  appid: number;
+  loanid: number;
+  escalatedfromuserid: string;
+  escalatedtouserid: string;
+  isescalatedtoeveryone: boolean;
+  comments: string;
+  maker: string;
+}
+
+/**
+ * 9. Fetch Escalation Users
+ * Endpoint: GET /api/Escalation/getusers
+ */
+export const getEscalationUsers = async (params: {
+  USERID: string;
+  language?: number | string;
+}): Promise<EscalationUserItem[]> => {
+  const hostUrl = process.env.HOST_API_KEY || "https://demo.finnovator.com.sa:8015";
+  try {
+    const response = await axios.get(`${hostUrl}/api/Escalation/getusers`, {
+      params: {
+        USERID: params.USERID,
+        userId: params.USERID,
+        language: params.language ?? 1,
+      },
+    });
+    const resData = response.data;
+    if (resData?.data && Array.isArray(resData.data)) {
+      return resData.data;
+    }
+    if (Array.isArray(resData)) {
+      return resData;
+    }
+    return [];
+  } catch (error: any) {
+    if (error?.response?.status === 405) {
+      try {
+        const postRes = await axios.post(`${hostUrl}/api/Escalation/getusers`, {
+          USERID: params.USERID,
+          userId: params.USERID,
+          language: params.language ?? 1,
+        });
+        if (postRes.data?.data && Array.isArray(postRes.data.data)) {
+          return postRes.data.data;
+        }
+        if (Array.isArray(postRes.data)) {
+          return postRes.data;
+        }
+      } catch (err2) {
+        console.error("POST getusers fallback failed:", err2);
+      }
+    }
+    console.error("Error fetching escalation users:", error);
+    return [];
+  }
+};
+
+/**
+ * 10. Add New Escalation
+ * Endpoint: POST /api/Escalation/addnewescalation
+ */
+export const addNewEscalation = async (payload: AddEscalationPayload) => {
+  const hostUrl = process.env.HOST_API_KEY || "https://demo.finnovator.com.sa:8015";
+  const response = await axios.post(
+    `${hostUrl}/api/Escalation/addnewescalation`,
+    payload
+  );
+  return response.data;
+};
+
