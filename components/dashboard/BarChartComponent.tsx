@@ -83,7 +83,7 @@ export default function BarChartComponent({ title, data }: BarChartProps) {
         <CardHeader className="pb-4 pt-8">
           <CardTitle className="text-center text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-500 dark:from-white dark:to-gray-400">{title}</CardTitle>
         </CardHeader>
-        <CardContent className="flex-1 pb-6 px-4 lg:px-8">
+        <CardContent className="flex-1 pb-6 px-1 lg:px-3">
           <div className="h-[320px] w-full">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData} margin={{ top: 20, right: 30, left: 0, bottom: 50 }}>

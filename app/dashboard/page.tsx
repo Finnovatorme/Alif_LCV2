@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import axios from "@/utils/axios";
 import { useDispatch, useSelector } from "react-redux";
@@ -17,7 +17,7 @@ import TargetAchievement from "@/components/dashboard/TargetAchievement";
 import BarChartComponent from "@/components/dashboard/BarChartComponent";
 import HorizontalBarChartComponent from "@/components/dashboard/HorizontalBarChartComponent";
 import FollowupStatusChart from "@/components/dashboard/FollowupStatusChart";
-import { LayoutDashboard, Eye } from "lucide-react";
+import { LayoutDashboard, Eye, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function Page() {
@@ -26,7 +26,7 @@ export default function Page() {
   const dispatch = useDispatch();
   const router = useRouter();
 
-  const [followUp, setFollowUp] = useState({
+  const [followUp, setFollowUp] = useState<Record<string, any>>({
     COMPLETE_FOLLOWUP: [],
     ESCALATED_CASES: [],
     PENDING_FOLLOWUP: [],
@@ -94,90 +94,108 @@ export default function Page() {
     },
   ];
 
-  useEffect(() => {
-    let isMounted = true;
+  const fetchDashboardData = useCallback(async () => {
+    let resolvedUserId: string | number | undefined =
+      user?.UserId ||
+      user?.userId ||
+      user?.Userid ||
+      user?.USERID ||
+      user?.username ||
+      user?.Username ||
+      user?.Username1 ||
+      user?.id;
 
-    const fetchDashboardData = async () => {
-      let resolvedUserId: string | number | undefined =
-        user?.UserId ||
-        user?.userId ||
-        user?.Userid ||
-        user?.USERID ||
-        user?.username ||
-        user?.Username ||
-        user?.Username1 ||
-        user?.id;
-
-      if (!resolvedUserId && typeof window !== "undefined") {
-        try {
-          const stored = localStorage.getItem("authData");
-          if (stored) {
-            const p = JSON.parse(stored);
-            resolvedUserId =
-              p?.UserId ||
-              p?.userId ||
-              p?.Userid ||
-              p?.USERID ||
-              p?.username ||
-              p?.Username ||
-              p?.Username1 ||
-              p?.id;
-          }
-        } catch (e) {
-          console.error("Error reading authData from localStorage:", e);
-        }
-      }
-
-      if (!resolvedUserId) {
-        resolvedUserId = "aadnan";
-      }
-
-      setDashboardLoading(true);
+    if (!resolvedUserId && typeof window !== "undefined") {
       try {
-        const hostUrl =
-          process.env.HOST_API_KEY || "https://demo.finnovator.com.sa:8015";
-        const langCode = language === "ar" || language === 2 ? 2 : 1;
-        const response = await axios.get(`${hostUrl}/api/Dashboard`, {
-          params: {
-            UserID: resolvedUserId,
-            UserId: resolvedUserId,
-            Recstatus: true,
-            language: langCode,
-          },
-        });
-        if (!isMounted) return;
-        const resData = response.data?.data || response.data;
-        const normalized = {
-          COMPLETE_FOLLOWUP: Array.isArray(resData?.COMPLETE_FOLLOWUP)
-            ? resData.COMPLETE_FOLLOWUP
-            : [],
-          ESCALATED_CASES: Array.isArray(resData?.ESCALATED_CASES)
-            ? resData.ESCALATED_CASES
-            : [],
-          PENDING_FOLLOWUP: Array.isArray(resData?.PENDING_FOLLOWUP)
-            ? resData.PENDING_FOLLOWUP
-            : [],
-        };
-        setFollowUp(normalized);
-        setFollowUpCount(
-          normalized.COMPLETE_FOLLOWUP.length +
-            normalized.ESCALATED_CASES.length +
-            normalized.PENDING_FOLLOWUP.length
-        );
-      } catch (err) {
-        console.error("Dashboard data fetch error:", err);
-        if (isMounted) toast.error("Failed to load dashboard data");
-      } finally {
-        if (isMounted) setDashboardLoading(false);
+        const stored = localStorage.getItem("authData");
+        if (stored) {
+          const p = JSON.parse(stored);
+          resolvedUserId =
+            p?.UserId ||
+            p?.userId ||
+            p?.Userid ||
+            p?.USERID ||
+            p?.username ||
+            p?.Username ||
+            p?.Username1 ||
+            p?.id;
+        }
+      } catch (e) {
+        console.error("Error reading authData from localStorage:", e);
       }
-    };
+    }
 
-    fetchDashboardData();
+    if (!resolvedUserId) {
+      resolvedUserId = "aadnan";
+    }
 
-    return () => {
-      isMounted = false;
-    };
+    setDashboardLoading(true);
+    try {
+      const hostUrl =
+        process.env.HOST_API_KEY || "https://demo.finnovator.com.sa:8015";
+      const langCode = language === "ar" || language === 2 ? 2 : 1;
+      const response = await axios.get(`${hostUrl}/api/Dashboard`, {
+        params: {
+          UserID: resolvedUserId,
+          UserId: resolvedUserId,
+          Recstatus: true,
+          language: langCode,
+        },
+      });
+
+      const rawPayload = response.data;
+      let resData = rawPayload?.data || rawPayload;
+      if (Array.isArray(resData) && resData.length > 0 && !resData[0]?.CIFID) {
+        resData = resData[0];
+      }
+
+      const getArray = (dataObj: any, keys: string[]) => {
+        if (!dataObj) return [];
+        for (const k of keys) {
+          if (Array.isArray(dataObj[k])) return dataObj[k];
+          if (Array.isArray(dataObj[k.toUpperCase()])) return dataObj[k.toUpperCase()];
+          if (Array.isArray(dataObj[k.toLowerCase()])) return dataObj[k.toLowerCase()];
+        }
+        return [];
+      };
+
+      const completeList = getArray(resData, ["COMPLETE_FOLLOWUP", "complete_followup", "CompleteFollowup"]);
+      const escalatedList = getArray(resData, ["ESCALATED_CASES", "escalated_cases", "EscalatedCases"]);
+      const pendingList = getArray(resData, ["PENDING_FOLLOWUP", "pending_followup", "PendingFollowup"]);
+
+      const normalized = {
+        ...(typeof resData === "object" && !Array.isArray(resData) ? resData : {}),
+        COMPLETE_FOLLOWUP: completeList,
+        ESCALATED_CASES: escalatedList,
+        PENDING_FOLLOWUP: pendingList,
+      };
+
+      setFollowUp(normalized);
+      setFollowUpCount(
+        completeList.length +
+        escalatedList.length +
+        pendingList.length
+      );
+    } catch (err) {
+      console.error("Dashboard data fetch error:", err);
+      toast.error("Failed to load dashboard data");
+    } finally {
+      setDashboardLoading(false);
+    }
   }, [user, language]);
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, [fetchDashboardData]);
+
+  // Auto-refresh when tab is focused
+  useEffect(() => {
+    const handleFocus = () => {
+      fetchDashboardData();
+    };
+    window.addEventListener("focus", handleFocus);
+    return () => window.removeEventListener("focus", handleFocus);
+  }, [fetchDashboardData]);
 
   if (loading) return <div className="flex h-screen items-center justify-center"><div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div></div>;
 
@@ -189,13 +207,26 @@ export default function Page() {
 
   return (
     <div className="flex flex-1 flex-col min-h-screen bg-gray-50 dark:bg-[#0a0a0a] p-6 lg:p-10 font-sans">
-      <div className="flex items-center gap-3 mb-8">
-        <div className="p-3 bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800">
-          <LayoutDashboard className="w-6 h-6 text-primary" />
+      <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center gap-3">
+          <div className="p-3 bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800">
+            <LayoutDashboard className="w-6 h-6 text-primary" />
+          </div>
+          <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-500 dark:from-white dark:to-gray-400">
+            Collection Dashboard
+          </h1>
         </div>
-        <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-500 dark:from-white dark:to-gray-400">
-          Collection Dashboard
-        </h1>
+
+        <Button
+          variant="outline"
+          size="sm"
+          disabled={dashboardLoading}
+          onClick={fetchDashboardData}
+          className="h-10 px-4 rounded-xl border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all flex items-center gap-2 cursor-pointer text-xs shadow-xs"
+        >
+          <RefreshCw className={`w-4 h-4 ${dashboardLoading ? "animate-spin" : ""}`} />
+          Refresh
+        </Button>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 mb-10">
@@ -229,7 +260,7 @@ export default function Page() {
       <div className="flex flex-col gap-8">
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
           {/* Table Container 1 */}
-          <div className="xl:col-span-7">
+          <div className="xl:col-span-9">
             <ReusableDataTable
               title="Pending Followup"
               initialData={followUp.PENDING_FOLLOWUP || []}
@@ -237,14 +268,14 @@ export default function Page() {
               loading={dashboardLoading}
             />
           </div>
-          <div className="xl:col-span-5">
+          <div className="xl:col-span-3">
             <BarChartComponent title="Customer Distribution By Group" data={followUp} />
           </div>
         </div>
 
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
           {/* Table Container 2 */}
-          <div className="xl:col-span-7">
+          <div className="xl:col-span-9">
             <ReusableDataTable
               title="Completed Followup"
               initialData={followUp.COMPLETE_FOLLOWUP || []}
@@ -252,14 +283,14 @@ export default function Page() {
               loading={dashboardLoading}
             />
           </div>
-          <div className="xl:col-span-5">
+          <div className="xl:col-span-3">
             <HorizontalBarChartComponent title="Collection Performance" data={followUp} />
           </div>
         </div>
 
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
           {/* Table Container 3 */}
-          <div className="xl:col-span-7">
+          <div className="xl:col-span-9">
             <ReusableDataTable
               title="Escalated Followup"
               initialData={followUp.ESCALATED_CASES || []}
@@ -267,7 +298,7 @@ export default function Page() {
               loading={dashboardLoading}
             />
           </div>
-          <div className="xl:col-span-5">
+          <div className="xl:col-span-3">
             <FollowupStatusChart title="Follow-up Status Distribution" data={followUp} />
           </div>
         </div>
