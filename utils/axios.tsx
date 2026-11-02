@@ -10,7 +10,7 @@ const axiosInstance: AxiosInstance = axios.create({
   headers: { "Content-Type": "application/json" },
 });
 
-// ✅ ADDED: Request interceptor to pull token before every request
+// ✅ ADDED: Request interceptor to pull token before every request and prevent caching on GET
 axiosInstance.interceptors.request.use(
   (config) => {
     if (typeof window !== "undefined") {
@@ -26,6 +26,18 @@ axiosInstance.interceptors.request.use(
         }
       }
     }
+
+    // Bypass browser and proxy HTTP caches for GET requests
+    if (config.method?.toLowerCase() === "get") {
+      config.headers["Cache-Control"] = "no-cache, no-store, must-revalidate";
+      config.headers["Pragma"] = "no-cache";
+      config.headers["Expires"] = "0";
+      config.params = {
+        ...config.params,
+        _t: Date.now(),
+      };
+    }
+
     return config;
   },
   (error) => Promise.reject(error),

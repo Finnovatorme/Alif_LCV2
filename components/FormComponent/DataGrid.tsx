@@ -157,7 +157,7 @@ export function ReusableDataTable<T extends Record<string, any>>(
     renderActions,
   } = props;
 
-  const [data, setData] = useState<T[]>([]);
+  const [data, setData] = useState<T[]>(initialData ? [...initialData] : []);
   const [rowSelection, setRowSelection] = useState({});
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -186,7 +186,7 @@ export function ReusableDataTable<T extends Record<string, any>>(
   // defaultSortColumnId is now computed earlier for state initialization
 
   useEffect(() => {
-    setData(initialData);
+    setData(initialData ? [...initialData] : []);
   }, [initialData]);
 
   const sensors = useSensors(
