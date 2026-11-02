@@ -2,13 +2,13 @@
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { useRouter } from "next/navigation";
 import { Pin } from "lucide-react";
+import { toast } from "sonner";
 
 import { ReusableDataTable } from "@/components/FormComponent/DataGrid";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { EditModal } from "@/components/ui/editmodal";
 import { Button } from "@/components/ui/button";
-import DropZone from "./DropZone";
 
 import { targetScreenData, targetScreenState } from "@/lib/redux/slices/adminConfigSlice";
 import { ddOptions, ddOptionsParams } from "@/lib/redux/slices/ddValuesSlice";
@@ -19,6 +19,7 @@ import axios from "@/utils/axios";
 import { BooleanStatus } from "@/components/ui/BooleanStatus";
 
 const page = () => {
+  const router = useRouter();
   const hasFetched = useRef(false);
   const dispatch = useDispatch();
   
@@ -28,14 +29,20 @@ const page = () => {
   const { user } = useAuth();
   
   const [loading, setLoading] = useState(true);
+  const [tableData, setTableData] = useState<any[]>([]);
   const [editData, setEditData] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [formKey, setFormKey] = useState(0);
-  
-  const [allocationModalOpen, setAllocationModalOpen] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState<any>(null);
-  const [selectedRow, setSelectedRow] = useState<any>({});
-  const [selectedGroup, setSelectedGroup] = useState<any[]>([]);
+
+  const handleAllocationOpen = (row: any) => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("selectedTargetForAllocation", JSON.stringify(row));
+    }
+    router.push(
+      `/dashboard/admin/TargetScreen/AllocationGroup?tctRecid=${row.TCTRECID}&targetName=${encodeURIComponent(row.TARGETNAME1 || "")}`
+    );
+  };
 
   const tableColumns = [
     {
@@ -48,10 +55,11 @@ const page = () => {
       header: "LC Allocation Group",
       cell: ({ row }: any) => (
         <div
-          className="cursor-pointer text-blue-600 flex justify-center"
+          className="cursor-pointer text-blue-600 hover:text-blue-800 transition-colors flex justify-center group/pin"
           onClick={() => handleAllocationOpen(row.original)}
+          title="Manage Allocation Groups"
         >
-          <Pin className="w-5 h-5" />
+          <Pin className="w-5 h-5 group-hover/pin:scale-110 transition-transform" />
         </div>
       ),
     },
@@ -92,30 +100,37 @@ const page = () => {
     },
   ];
 
-  const fields = useMemo(() => [
-    {
-      type: "section",
-      title: "Target Details",
-      fields: [
-        { type: "input", name: "targetName1", label: "Target Name 1", required: true },
-        { type: "input", name: "targetName2", label: "Target Name 2" },
-        { type: "input", name: "targetName3", label: "Target Name 3" },
-        { type: "number", name: "minTarget", label: "Minimum Target", rules: { max: 100 } },
-        { type: "date", name: "targetStartDate", label: "Target Start Date" },
-        { type: "date", name: "targetEndDate", label: "Target End Date" },
-        { type: "switch", name: "targetStatus", label: "Record Status" },
-      ]
-    },
-    {
-      type: "section",
-      title: "Other Information",
-      fields: [
-        { type: "textarea", name: "othDesc1", label: "Other Description 1" },
-        { type: "textarea", name: "othDesc2", label: "Other Description 2" },
-        { type: "textarea", name: "othDesc3", label: "Other Description 3" },
-      ]
+  const fields = useMemo(() => {
+    const targetDetailsFields: any[] = [
+      { type: "input", name: "targetName1", label: "Target Name 1", required: true },
+      { type: "input", name: "targetName2", label: "Target Name 2" },
+      { type: "input", name: "targetName3", label: "Target Name 3" },
+      { type: "number", name: "minTarget", label: "Minimum Target", rules: { max: 100 } },
+      { type: "date", name: "targetStartDate", label: "Target Start Date" },
+      { type: "date", name: "targetEndDate", label: "Target End Date" },
+    ];
+
+    if (editData) {
+      targetDetailsFields.push({ type: "switch", name: "targetStatus", label: "Record Status" });
     }
-  ], []);
+
+    return [
+      {
+        type: "section",
+        title: "Target Details",
+        fields: targetDetailsFields,
+      },
+      {
+        type: "section",
+        title: "Other Information",
+        fields: [
+          { type: "textarea", name: "othDesc1", label: "Other Description 1" },
+          { type: "textarea", name: "othDesc2", label: "Other Description 2" },
+          { type: "textarea", name: "othDesc3", label: "Other Description 3" },
+        ],
+      },
+    ];
+  }, [editData]);
 
   const keyMappings = {
     TCTRECID: "TCT Rec ID",
@@ -141,8 +156,10 @@ const page = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const targetData = await targetGetData(); 
-      dispatch(targetScreenData(Array.isArray(targetData) ? targetData : []));
+      const targetData = await targetGetData();
+      const list = Array.isArray(targetData) ? targetData : [];
+      setTableData([...list]);
+      dispatch(targetScreenData([...list]));
     } catch (error) {
       console.error("Error in fetchData:", error);
     } finally {
@@ -153,6 +170,13 @@ const page = () => {
   useEffect(() => {
     fetchData();
   }, []);
+
+  // Sync if targetDataState changes externally
+  useEffect(() => {
+    if (targetDataState && Array.isArray(targetDataState) && targetDataState.length > 0) {
+      setTableData(targetDataState);
+    }
+  }, [targetDataState]);
 
   const getLcAllocationOptions = async () => {
     setLoading(true);
@@ -184,65 +208,43 @@ const page = () => {
       const response = await axios.delete(
         `${process.env.HOST_API_KEY}/api/CnfgTargets/?TctRecid=${delData.TCTRECID}&UpdateBy=${user?.Userid}`
       );
-      if (response.status === 200) {
-        fetchData();
+      if (
+        response.status === 200 ||
+        response.status === 204 ||
+        response.data?.succeeded !== false
+      ) {
+        // Optimistically update the record status to INACTIVE immediately
+        setTableData((prev) =>
+          prev.map((item) =>
+            item.TCTRECID === delData.TCTRECID
+              ? { ...item, RECSTATUS: false }
+              : item
+          )
+        );
+        toast.success("Target deleted successfully!");
+        setTimeout(() => {
+          fetchData();
+        }, 400);
       }
-    } catch (e) {
-      console.error(e);
-    }
-  };
-
-  const handleAllocationOpen = (rowId: any) => {
-    getAllocatedGroups(rowId);
-    setAllocationModalOpen(true);
-    setSelectedRow(rowId);
-  };
-
-  const getAllocatedGroups = async (Id: any) => {
-    try {
-      const response = await axios.get(
-        `${process.env.HOST_API_KEY}/api/CnfgTargetsGroup/get-CnfgTargetGroup`,
-        {
-          params: {
-            TctRecid: Id.TCTRECID,
-          },
-        }
+    } catch (e: any) {
+      console.error("Delete target error:", e);
+      toast.error(
+        e?.response?.data?.responsedescription ||
+          e?.message ||
+          "Failed to delete target"
       );
-
-      const rawData = response.data;
-      const list = Array.isArray(rawData)
-        ? rawData
-        : Array.isArray(rawData?.data)
-        ? rawData.data
-        : [];
-
-      const options = list.map((item: any) => ({
-        id: item.VB_LCALLOCATIONGROUP?.toString(),
-        tctgrecid: item?.TCTGRECID,
-        name: item.LCALLOCATIONGROUP,
-        containerId: "Selected Group",
-      }));
-
-      const reducedArr = ddValues?.LCALLOCATIONGROUPS?.filter((curr: any) => {
-        return !options.some((item: any) => item.id === curr.id);
-      }) || [];
-
-      setSelectedGroup([...reducedArr, ...options]);
-    } catch (error) {
-      console.error("Error fetching allocated groups:", error);
     }
   };
 
   const postApplicationData = async (dataToPost: any) => {
-    // Add default tracking fields
     const today = new Date().toISOString();
-    const updateBy = user?.Userid || "";
+    const updateBy = user?.Userid || user?.userId || "1";
 
     const payload = {
       ...dataToPost,
       UPDATEBY: updateBy,
       UPDATEDATE: today,
-      RECSTATUS: dataToPost.targetStatus !== undefined ? dataToPost.targetStatus : true,
+      RECSTATUS: editData ? (dataToPost.targetStatus !== undefined ? Boolean(dataToPost.targetStatus) : true) : true,
     };
 
     if (!editData) {
@@ -257,52 +259,25 @@ const page = () => {
             payload
           )
         : await axios.post(`${process.env.HOST_API_KEY}/api/CnfgTargets/add-CnfgTargets`, payload);
-      if (response.status === 200) {
-        fetchData();
+
+      if (
+        response.status === 200 ||
+        response.status === 201 ||
+        response.data?.succeeded !== false
+      ) {
+        toast.success(editData ? "Target updated successfully!" : "Target added successfully!");
         setEditModalOpen(false);
         setSelectedRecord(null);
+        await fetchData();
       }
-    } catch (e) {
-      console.error(e);
+    } catch (e: any) {
+      console.error("Save target error:", e);
+      toast.error(
+        e?.response?.data?.responsedescription ||
+          e?.message ||
+          "Failed to save target"
+      );
     }
-  };
-
-  const handleGroupSave = async (data: any) => {
-    const optionData = {
-      recStatus: true,
-      tctRecid: data?.TCTRECID,
-      updateBy: user?.Userid,
-      updateDate: new Date().toISOString(),
-      vb_LcAllocationGroup: data?.id,
-    };
-
-    const recId = selectedGroup?.filter((item: any) => {
-      if (item?.tctgrecid !== undefined) return item;
-    })[0];
-
-    try {
-      const response =
-        recId?.tctgrecid !== undefined
-          ? await axios.put(
-              `${process.env.HOST_API_KEY}/api/CnfgTargetsGroup/${recId.tctgrecid}`,
-              optionData
-            )
-          : await axios.post(
-              `${process.env.HOST_API_KEY}/api/CnfgTargetsGroup/add-CnfgTargetsGroup`,
-              optionData
-            );
-      if (response.status === 200) {
-        fetchData();
-        handleAllocationModalClose();
-      }
-    } catch (error) {
-      console.error("Error saving group data:", error);
-    }
-  };
-
-  const handleAllocationModalClose = () => {
-    setAllocationModalOpen(false);
-    setSelectedGroup([]);
   };
 
   // Map backend record to form structure
@@ -351,7 +326,7 @@ const page = () => {
         }
         loading={loading}
         columns={tableColumns}
-        initialData={targetDataState || []}
+        initialData={tableData}
         keyMappings={keyMappings}
         onUpdate={(row: any) => {
            setEditData(true);
@@ -377,27 +352,6 @@ const page = () => {
         title={editData ? "Edit Target" : "Add Target"}
         description="Fill the target fields and save."
       />
-
-      <Dialog open={allocationModalOpen} onOpenChange={handleAllocationModalClose}>
-        <DialogContent className="sm:max-w-4xl">
-          <DialogHeader>
-            <DialogTitle>Allocate Group</DialogTitle>
-          </DialogHeader>
-          <div className="mt-4">
-            <DropZone
-              dropDownValues={
-                selectedGroup.length > 0
-                  ? selectedGroup
-                  : ddValues?.LCALLOCATIONGROUPS?.length > 0
-                    ? ddValues?.LCALLOCATIONGROUPS
-                    : []
-              }
-              handleSave={handleGroupSave}
-              selectedRow={selectedRow}
-            />
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };

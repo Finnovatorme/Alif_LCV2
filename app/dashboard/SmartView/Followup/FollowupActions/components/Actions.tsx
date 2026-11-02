@@ -230,7 +230,7 @@ export const Actions: React.FC<ActionsProps> = ({
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [activeTemplates, setActiveTemplates] = useState<TemplateItem[]>([]);
-  const [selectedTemplateIndex, setSelectedTemplateIndex] = useState(0);
+  const [selectedTemplateIndex, setSelectedTemplateIndex] = useState<number | null>(null);
   const [messageContent, setMessageContent] = useState("");
   const [historyList, setHistoryList] = useState<FormattedHistoryItem[]>([]);
   const [notifTypeOptions, setNotifTypeOptions] = useState<Option[]>([]);
@@ -536,12 +536,10 @@ export const Actions: React.FC<ActionsProps> = ({
         }
 
         setActiveTemplates(templatesList);
-        setSelectedTemplateIndex(0);
+        setSelectedTemplateIndex(null);
+        setMessageContent("");
 
-        // Immediately trigger STEP 2: POST /api/Notification/getnotificationtemplate for first template
-        if (templatesList.length > 0) {
-          await fetchTemplateContent(templatesList[0].id, templatesList[0].title);
-        }
+
 
         // Process dynamic history
         if (Array.isArray(historyRes) && historyRes.length > 0) {
@@ -580,10 +578,8 @@ export const Actions: React.FC<ActionsProps> = ({
         console.error("Error loading communication modal data:", err);
         const fallback = fallbackTemplatesConfig[type]?.templates || [];
         setActiveTemplates(fallback);
-        setSelectedTemplateIndex(0);
-        if (fallback.length > 0) {
-          setMessageContent(interpolateTemplate(fallback[0].content));
-        }
+        setSelectedTemplateIndex(null);
+        setMessageContent("");
       } finally {
         setLoadingTemplates(false);
         setLoadingHistory(false);
@@ -594,7 +590,8 @@ export const Actions: React.FC<ActionsProps> = ({
 
   const handleOpenComm = (type: "sms" | "whatsapp" | "email") => {
     setCommType(type);
-    setSelectedTemplateIndex(0);
+    setSelectedTemplateIndex(null);
+    setMessageContent("");
     setOpenCommunicationModal(true);
     fetchCommunicationData(type);
   };
@@ -616,8 +613,13 @@ export const Actions: React.FC<ActionsProps> = ({
    * Hits POST /api/Notification/insertfollowupnotification
    */
   const handleSendMessage = async () => {
-    if (!messageContent.trim()) {
-      toast.error("Please enter message content");
+    if (selectedTemplateIndex === null || selectedTemplateIndex < 0 || !activeTemplates[selectedTemplateIndex]) {
+      toast.error("Please select a template");
+      return;
+    }
+
+    if (!messageContent || messageContent.trim().length <= 0) {
+      toast.error("Message description cannot be empty");
       return;
     }
 
@@ -652,7 +654,7 @@ export const Actions: React.FC<ActionsProps> = ({
         // appid: resolved.appId,    
         // idnumber: resolved.idNumber, 
         updateby: activeUpdateBy,
-        notificationid: 3,
+        notificationid: Number(selectedTemplate?.id || 3),
         cifid: 40403,
         // appcifid: 0,
         appid: 60364,
@@ -675,16 +677,19 @@ export const Actions: React.FC<ActionsProps> = ({
       };
 
       setHistoryList((prev) => [newHistoryItem, ...prev]);
-      if (res?.responsetype === "SUCCESS") {
-        toast.success(
-          `${commType === "sms"
-            ? "SMS"
-            : commType === "whatsapp"
-              ? "WhatsApp"
-              : "Email"
-          } sent successfully!`
-        );
-      }
+      toast.success(
+        `${commType === "sms"
+          ? "SMS"
+          : commType === "whatsapp"
+            ? "WhatsApp"
+            : "Email"
+        } sent successfully!`
+      );
+
+      // Close modal and reset state on successful send
+      setOpenCommunicationModal(false);
+      setSelectedTemplateIndex(null);
+      setMessageContent("");
 
     } catch (err: any) {
       console.error("Error sending communication:", err);
@@ -776,7 +781,6 @@ export const Actions: React.FC<ActionsProps> = ({
         </div>
       </div>
 
-      {/* 1. MAKE CALL MODAL */}
       {openCallModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 animate-in fade-in duration-200">
           <div className="relative w-full max-w-4xl rounded-2xl bg-[#f1f5f9] dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-2xl overflow-hidden text-gray-900 dark:text-white font-sans">
@@ -855,7 +859,11 @@ export const Actions: React.FC<ActionsProps> = ({
             <div className="bg-blue-600 text-white px-6 py-3.5 flex items-center justify-between font-bold text-base shadow-xs">
               <span>{currentModalTitle}</span>
               <button
-                onClick={() => setOpenCommunicationModal(false)}
+                onClick={() => {
+                  setOpenCommunicationModal(false);
+                  setSelectedTemplateIndex(null);
+                  setMessageContent("");
+                }}
                 className="hover:bg-white/20 p-1 rounded-lg transition-colors cursor-pointer text-white"
               >
                 <X className="w-5 h-5" />
@@ -910,37 +918,66 @@ export const Actions: React.FC<ActionsProps> = ({
                     <DropdownMenuTrigger asChild>
                       <button
                         type="button"
-                        className="px-3.5 py-2 rounded-xl border border-blue-500 text-blue-600 dark:text-blue-400 bg-white dark:bg-gray-800 font-semibold text-xs flex items-center gap-1.5 shadow-2xs cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-all"
+                        disabled={loadingTemplates}
+                        className="px-3.5 py-2 rounded-xl border border-blue-500 text-blue-600 dark:text-blue-400 bg-white dark:bg-gray-800 font-semibold text-xs flex items-center gap-1.5 shadow-2xs cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-all disabled:opacity-60"
                       >
-                        Select Template
-                        <ChevronDown className="w-3.5 h-3.5" />
+                        {loadingTemplates ? (
+                          <>
+                            <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" />
+                            Loading templates...
+                          </>
+                        ) : selectedTemplateIndex !== null &&
+                          selectedTemplateIndex >= 0 &&
+                          activeTemplates[selectedTemplateIndex] ? (
+                          activeTemplates[selectedTemplateIndex].title
+                        ) : (
+                          "Select Template"
+                        )}
+                        <ChevronDown className="w-3.5 h-3.5 ml-1" />
                       </button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent
                       align="start"
                       className="w-64 max-h-60 overflow-y-auto bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-xl rounded-xl p-1"
                     >
-                      {activeTemplates.map((tmpl, idx) => (
-                        <DropdownMenuItem
-                          key={tmpl.id || idx}
-                          onClick={() => handleSelectTemplate(idx)}
-                          className="flex items-center justify-between text-xs cursor-pointer py-2 px-3 rounded-lg hover:bg-blue-50 dark:hover:bg-gray-700"
-                        >
-                          <span className="font-medium truncate">
-                            {tmpl.title}
-                          </span>
-                          {selectedTemplateIndex === idx && (
-                            <Check className="w-3.5 h-3.5 text-blue-600 shrink-0 ml-2" />
-                          )}
-                        </DropdownMenuItem>
-                      ))}
+                      {loadingTemplates ? (
+                        <div className="flex items-center justify-center p-3 text-xs text-gray-500">
+                          <Loader2 className="w-4 h-4 animate-spin text-blue-600 mr-2" />
+                          Loading templates...
+                        </div>
+                      ) : activeTemplates.length === 0 ? (
+                        <div className="p-3 text-center text-xs text-gray-500">
+                          No templates found
+                        </div>
+                      ) : (
+                        activeTemplates.map((tmpl, idx) => (
+                          <DropdownMenuItem
+                            key={tmpl.id || idx}
+                            onClick={() => handleSelectTemplate(idx)}
+                            className="flex items-center justify-between text-xs cursor-pointer py-2 px-3 rounded-lg hover:bg-blue-50 dark:hover:bg-gray-700"
+                          >
+                            <span className="font-medium truncate">
+                              {tmpl.title}
+                            </span>
+                            {selectedTemplateIndex === idx && (
+                              <Check className="w-3.5 h-3.5 text-blue-600 shrink-0 ml-2" />
+                            )}
+                          </DropdownMenuItem>
+                        ))
+                      )}
                     </DropdownMenuContent>
                   </DropdownMenu>
 
                   {/* Send Button: Hits POST /api/Notification/insertfollowupnotification */}
                   <Button
                     onClick={handleSendMessage}
-                    disabled={isSending || !messageContent.trim()}
+                    disabled={
+                      isSending ||
+                      selectedTemplateIndex === null ||
+                      selectedTemplateIndex < 0 ||
+                      !messageContent ||
+                      messageContent.trim().length <= 0
+                    }
                     className="h-10 px-8 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm shadow-sm transition-all active:scale-95 cursor-pointer flex items-center gap-2 disabled:opacity-50"
                   >
                     {isSending ? (
@@ -953,37 +990,6 @@ export const Actions: React.FC<ActionsProps> = ({
                     )}
                   </Button>
                 </div>
-
-                {/* Horizontal Selectable Template Cards (Clicking hits POST getnotificationtemplate) */}
-                {loadingTemplates ? (
-                  <div className="flex items-center justify-center p-6 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
-                    <Loader2 className="w-5 h-5 animate-spin text-blue-600 mr-2" />
-                    <span className="text-xs text-gray-500">
-                      Loading notification templates...
-                    </span>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 pt-1">
-                    {activeTemplates.map((tmpl, idx) => (
-                      <button
-                        key={tmpl.id || idx}
-                        type="button"
-                        onClick={() => handleSelectTemplate(idx)}
-                        className={`p-3.5 rounded-xl border text-left transition-all flex flex-col gap-1 shadow-2xs cursor-pointer ${selectedTemplateIndex === idx
-                          ? "border-blue-600 bg-white dark:bg-gray-800 ring-2 ring-blue-500/30"
-                          : "border-gray-200/80 dark:border-gray-700/80 bg-white/80 dark:bg-gray-800/80 hover:bg-white dark:hover:bg-gray-800"
-                          }`}
-                      >
-                        <strong className="text-xs font-bold text-gray-900 dark:text-white truncate">
-                          {tmpl.title}
-                        </strong>
-                        <p className="text-[10px] text-gray-500 dark:text-gray-400 line-clamp-2 leading-tight">
-                          {tmpl.content || (selectedTemplateIndex === idx ? messageContent : `Template: ${tmpl.title}`)}
-                        </p>
-                      </button>
-                    ))}
-                  </div>
-                )}
               </div>
 
               {/* Right Column: Dynamic History */}

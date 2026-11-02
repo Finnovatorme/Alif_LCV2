@@ -101,7 +101,7 @@ export const FinancialCustomerDetails: React.FC<FinancialCustomerDetailsProps> =
   return (
     <div className="xl:col-span-8 flex flex-col gap-4">
       <h2 className="text-lg font-bold text-gray-900 dark:text-white">
-        Customer Details
+        Financing Details
       </h2>
 
       <div className="relative group rounded-3xl p-[1px] bg-gradient-to-b from-gray-200 to-transparent dark:from-gray-800 transition-all duration-500 hover:shadow-[0_0_40px_-10px_rgba(15,142,221,0.15)]">
