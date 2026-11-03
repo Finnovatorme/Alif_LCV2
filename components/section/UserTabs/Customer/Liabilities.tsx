@@ -14,6 +14,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { vbValue, fetchAppCifOptions, fetchFinancierOptions } from "@/utils/dropDownApis";
 import { useSelector } from "react-redux";
 import { languageParams } from "@/lib/redux/slices/dashboardApplSlice";
+import { formatDateKSA, formatAmountKSA } from "@/utils/helpers";
 
 type Row = Record<string, any>;
 type Option = { value: string | number; label: string };
@@ -97,15 +98,11 @@ const pickAppId = (propAppId?: string | number, tab?: any) => {
 
 const isActive = (v: any) => v === true || v === 1 || v === "1";
 const money = (v: any) => {
-  const n = Number(String(v).replace(/,/g, ""));
-  return Number.isFinite(n)
-    ? n.toLocaleString("en-US", { maximumFractionDigits: 2 })
-    : "—";
+  return formatAmountKSA(v);
 };
 const prettyDate = (v: any) => {
   if (!v) return "—";
-  const d = new Date(String(v));
-  return Number.isNaN(d.getTime()) ? String(v) : d.toLocaleDateString("en-GB");
+  return formatDateKSA(v) || "—";
 };
 
 export default function Liabilities({ tab, appId }: any) {

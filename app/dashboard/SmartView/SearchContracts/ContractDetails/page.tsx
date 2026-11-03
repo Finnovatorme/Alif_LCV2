@@ -135,7 +135,9 @@ export default function ContractDetailsPage() {
   return (
     <div className="space-y-4">
       {/* Clean Compact Header */}
-      <div className="flex items-center justify-between bg-white dark:bg-slate-900 py-3.5 px-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+      <div className="relative overflow-hidden flex items-center justify-between bg-white dark:bg-slate-900 py-4 px-6 rounded-3xl border border-slate-200/60 dark:border-slate-800 shadow-xl dark:shadow-[0_10px_30px_-5px_rgba(0,0,0,0.6)]">
+        {/* Top Gradient */}
+        <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-indigo-500 via-sky-500 to-emerald-500" />
         <div className="flex items-center gap-4">
           <Button
             variant="ghost"

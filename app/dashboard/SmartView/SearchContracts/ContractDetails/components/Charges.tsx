@@ -9,7 +9,7 @@ import { getCustomerContractCharges } from "../../HandlingAPIs";
 import { languageParams } from "@/lib/redux/slices/dashboardApplSlice";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { formatDateKSA } from "@/utils/helpers";
+import { formatDateKSA, formatAmountKSA } from "@/utils/helpers";
 
 export default function Charges({ loanId, cifId }: { loanId: string; cifId: string }) {
   const language = useSelector(languageParams);
@@ -51,7 +51,7 @@ export default function Charges({ loanId, cifId }: { loanId: string; cifId: stri
     { 
       accessorKey: "DUEAMOUNT", 
       header: "Due Amount",
-      cell: ({ getValue }) => (getValue() ? Number(getValue()).toLocaleString(undefined, { minimumFractionDigits: 2 }) : "0.00")
+      cell: ({ getValue }) => formatAmountKSA(getValue())
     },
     { 
       accessorKey: "DUEDATE", 

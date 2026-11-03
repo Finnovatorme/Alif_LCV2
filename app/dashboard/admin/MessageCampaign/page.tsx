@@ -11,6 +11,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { languageParams } from "@/lib/redux/slices/dashboardApplSlice";
 import axios from "@/utils/axios";
 import { toast } from "sonner";
+import { formatDateKSA } from "@/utils/helpers";
 
 export default function MessageCampaignPage() {
     const selectedLanguage = useSelector(languageParams);
@@ -130,22 +131,12 @@ export default function MessageCampaignPage() {
         {
             accessorKey: "SCHEDULESTARTDATE",
             header: "Schedule Start Date",
-            cell: ({ row }: any) => {
-                const val = row.original.SCHEDULESTARTDATE;
-                if (!val) return "-";
-                const date = new Date(val);
-                return isNaN(date.getTime()) ? "-" : date.toLocaleDateString();
-            },
+            cell: ({ row }: any) => formatDateKSA(row.original.SCHEDULESTARTDATE),
         },
         {
             accessorKey: "SCHEDULEENDDATE",
             header: "Schedule End Date",
-            cell: ({ row }: any) => {
-                const val = row.original.SCHEDULEENDDATE;
-                if (!val) return "-";
-                const date = new Date(val);
-                return isNaN(date.getTime()) ? "-" : date.toLocaleDateString();
-            },
+            cell: ({ row }: any) => formatDateKSA(row.original.SCHEDULEENDDATE),
         },
         {
             accessorKey: "SCHEDULETIME",

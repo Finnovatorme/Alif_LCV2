@@ -8,6 +8,7 @@ import { Wallet } from "lucide-react";
 import { getCustomerIncome, getCustomerDetails } from "../../HandlingAPIs";
 import { languageParams } from "@/lib/redux/slices/dashboardApplSlice";
 import { toast } from "sonner";
+import { formatAmountKSA } from "@/utils/helpers";
 
 export default function IncomeDetails({ cifId }: { cifId: string }) {
   const language = useSelector(languageParams);
@@ -56,7 +57,7 @@ export default function IncomeDetails({ cifId }: { cifId: string }) {
       header: "Payroll Amount",
       cell: ({ getValue }) => (
         <span className="font-bold text-slate-900 dark:text-white">
-          {getValue() as string}
+          {formatAmountKSA(getValue())}
         </span>
       ),
     },
@@ -66,7 +67,7 @@ export default function IncomeDetails({ cifId }: { cifId: string }) {
       header: "Net Payroll Amount",
       cell: ({ getValue }) => (
         <span className="font-bold text-indigo-600">
-          {getValue() as string}
+          {formatAmountKSA(getValue())}
         </span>
       ),
     },

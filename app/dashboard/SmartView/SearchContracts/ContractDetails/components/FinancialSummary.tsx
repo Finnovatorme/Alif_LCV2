@@ -143,7 +143,7 @@ function SummaryCard({ title, icon: Icon, children }: { title: string; icon: any
 
 function Field({ label, value, isAmount, color }: { label: string; value: any; isAmount?: boolean; color?: string }) {
   const displayValue = isAmount 
-    ? (value ? Number(value).toLocaleString(undefined, { minimumFractionDigits: 2 }) : "0.00")
+    ? (value ? Number(value).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "0.00")
     : (value || "-");
 
   const colorClasses: any = {

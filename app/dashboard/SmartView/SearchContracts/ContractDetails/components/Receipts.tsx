@@ -9,7 +9,7 @@ import { getCustomerContractReceipts, getReceipts } from "../../HandlingAPIs";
 import { languageParams } from "@/lib/redux/slices/dashboardApplSlice";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { formatDateKSA } from "@/utils/helpers";
+import { formatDateKSA, formatAmountKSA } from "@/utils/helpers";
 
 export default function Receipts({
   loanId,
@@ -72,7 +72,7 @@ export default function Receipts({
     { 
       accessorKey: "RECEIPTAMOUNT", 
       header: "Amount",
-      cell: ({ getValue }) => (getValue() ? Number(getValue()).toLocaleString(undefined, { minimumFractionDigits: 2 }) : "0.00")
+      cell: ({ getValue }) => formatAmountKSA(getValue())
     },
     { accessorKey: "BANKNAME", header: "Bank Name" },
     { accessorKey: "ACCOUNTNUMBER", header: "Account No" },

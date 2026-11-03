@@ -233,12 +233,17 @@ export const followupCustomerDetailsGet = async (params: Record<string, any>) =>
       `${hostUrl}/api/Customer/get-CustomerDetails`,
       { params }
     );
-    const followupCustomerData = (response.data || []).map((item: any, index: number) => {
-      return { ...item, id: index + 1 };
-    });
-    return followupCustomerData;
+    const raw = response.data?.data !== undefined ? response.data.data : response.data;
+    if (Array.isArray(raw)) {
+      return raw.map((item: any, index: number) => ({ ...item, id: item.id || index + 1 }));
+    }
+    if (raw && typeof raw === "object") {
+      return [{ ...raw, id: raw.id || 1 }];
+    }
+    return [];
   } catch (error: any) {
-    return { error: error?.message || "Error fetching customer details" };
+    console.error("Error fetching customer details:", error);
+    return [];
   }
 };
 
@@ -252,12 +257,17 @@ export const followupDetailsGet = async (params: Record<string, any>) => {
       `${hostUrl}/api/TranFollowUpDetails/get-FollowUpDetails`,
       { params: params?.params ? params.params : params }
     );
-    const followupData = (response.data || []).map((item: any, index: number) => {
-      return { ...item, id: index + 1 };
-    });
-    return followupData;
+    const raw = response.data?.data !== undefined ? response.data.data : response.data;
+    if (Array.isArray(raw)) {
+      return raw.map((item: any, index: number) => ({ ...item, id: item.id || index + 1 }));
+    }
+    if (raw && typeof raw === "object") {
+      return [{ ...raw, id: raw.id || 1 }];
+    }
+    return [];
   } catch (error: any) {
-    return { error: error?.message || "Error fetching followup details" };
+    console.error("Error fetching followup details:", error);
+    return [];
   }
 };
 
