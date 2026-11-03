@@ -11,7 +11,7 @@ import { EditModal } from "@/components/ui/editmodal";
 import type { FieldConfig as BaseFieldConfig } from "@/types/field.types";
 import { useAuth } from "@/hooks/useAuth";
 import { vbValue, fetchAppCifOptions } from "@/utils/dropDownApis";
-import { toNum, toYMD } from "@/utils/helpers";
+import { toNum, toYMD, formatAmountKSA } from "@/utils/helpers";
 import { useSelector } from "react-redux";
 import { languageParams } from "@/lib/redux/slices/dashboardApplSlice";
 import { BooleanStatus } from "@/components/ui/BooleanStatus";
@@ -192,23 +192,21 @@ export default function Expensemaster({ tab, appId }: any) {
         header: "Monthly Rent",
         accessorKey: "MONTHLYRENT",
         cell: ({ row }: CellContext<Row, unknown>) => {
-          const n = Number(row.original?.MONTHLYRENT ?? 0);
-          return Number.isFinite(n) ? n.toLocaleString() : "—";
+          return formatAmountKSA(row.original?.MONTHLYRENT);
         },
       },
       {
         header: "Total Monthly Expense",
         accessorKey: "TOTALMONTHLYEXPENSE",
         cell: ({ row }: CellContext<Row, unknown>) => {
-          const n = Number(row.original?.TOTALMONTHLYEXPENSE ?? 0);
-          return Number.isFinite(n) ? n.toLocaleString() : "—";
+          return formatAmountKSA(row.original?.TOTALMONTHLYEXPENSE);
         },
       },
       {
         header: "Calculated monthly Expense",
         accessorKey: "Calculatedmonthlyexpense",
         cell: ({ row }: CellContext<Row, unknown>) =>
-          row.original?.Calculatedmonthlyexpense ?? "—",
+          formatAmountKSA(row.original?.Calculatedmonthlyexpense),
       },
       {
         header: "No of Dependents",

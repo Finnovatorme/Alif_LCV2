@@ -17,6 +17,7 @@ import { fetchLCAllocationGroupOptions } from "@/utils/dropDownApis";
 import { useAuth } from "@/hooks/useAuth";
 import axios from "@/utils/axios";
 import { BooleanStatus } from "@/components/ui/BooleanStatus";
+import { formatDateKSA } from "@/utils/helpers";
 
 const page = () => {
   const router = useRouter();
@@ -74,22 +75,12 @@ const page = () => {
     {
       accessorKey: "TARGETSTARTDATE",
       header: "Target Start Date",
-      cell: ({ row }: any) => {
-        const val = row.original.TARGETSTARTDATE;
-        if (!val) return "-";
-        const date = new Date(val);
-        return isNaN(date.getTime()) ? "-" : date.toLocaleDateString();
-      },
+      cell: ({ row }: any) => formatDateKSA(row.original.TARGETSTARTDATE),
     },
     {
       accessorKey: "TARGETENDDATE",
       header: "Target End Date",
-      cell: ({ row }: any) => {
-        const val = row.original.TARGETENDDATE;
-        if (!val) return "-";
-        const date = new Date(val);
-        return isNaN(date.getTime()) ? "-" : date.toLocaleDateString();
-      },
+      cell: ({ row }: any) => formatDateKSA(row.original.TARGETENDDATE),
     },
     {
       accessorKey: "RECSTATUS",

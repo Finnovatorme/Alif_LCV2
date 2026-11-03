@@ -8,6 +8,7 @@ import { Box, Tag, Layers } from "lucide-react";
 import { getCustomerAssetCommodity } from "../../HandlingAPIs";
 import { languageParams } from "@/lib/redux/slices/dashboardApplSlice";
 import { toast } from "sonner";
+import { formatAmountKSA } from "@/utils/helpers";
 
 export default function AssetDetails({ cifId }: { cifId: string }) {
   const language = useSelector(languageParams);
@@ -40,11 +41,11 @@ export default function AssetDetails({ cifId }: { cifId: string }) {
     { 
       accessorKey: "ASSETPRICE", 
       header: "Price",
-      cell: ({ getValue }) => <span className="font-bold text-indigo-600">{getValue() as string}</span>
+      cell: ({ getValue }) => <span className="font-bold text-indigo-600">{formatAmountKSA(getValue())}</span>
     },
     { accessorKey: "ASSETQUANTITY", header: "Qty" },
-    { accessorKey: "DOWNPAYMENT", header: "Down Payment" },
-    { accessorKey: "RESIDUALAMOUNT", header: "Residual" },
+    { accessorKey: "DOWNPAYMENT", header: "Down Payment", cell: ({ getValue }) => formatAmountKSA(getValue()) },
+    { accessorKey: "RESIDUALAMOUNT", header: "Residual", cell: ({ getValue }) => formatAmountKSA(getValue()) },
   ];
 
   const keyMappings = {

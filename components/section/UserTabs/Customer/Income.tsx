@@ -78,7 +78,10 @@ const isActive = (v: any) => v === true || v === 1 || v === "1";
 const fmt = (v: any) => {
   const n = Number(String(v).replace(/,/g, ""));
   return Number.isFinite(n)
-    ? n.toLocaleString("en-US", { maximumFractionDigits: 2 })
+    ? n.toLocaleString("en-US", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      })
     : "—";
 };
 

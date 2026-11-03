@@ -28,6 +28,7 @@ import {
 } from "@/lib/redux/slices/dashboardApplSlice";
 import { setSelectedUserId } from "@/lib/redux/slices/userTabSlice";
 import { useAuth } from "@/hooks/useAuth";
+import { formatDateKSA } from "@/utils/helpers";
 import { vbValue, Option } from "@/utils/dropDownApis";
 import { toast } from "sonner";
 
@@ -286,11 +287,11 @@ export const Actions: React.FC<ActionsProps> = ({
 
   // Helper to format date & time for history cards
   const formatDateTime = (dateStr?: string) => {
-    if (!dateStr) return { date: "12/3/2024", time: "09:28 AM" };
+    if (!dateStr) return { date: "03/12/2024", time: "09:28 AM" };
     try {
       const d = new Date(dateStr);
-      if (isNaN(d.getTime())) return { date: dateStr, time: "" };
-      const date = `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear()}`;
+      if (isNaN(d.getTime())) return { date: formatDateKSA(dateStr) || dateStr, time: "" };
+      const date = formatDateKSA(d);
       const time = d.toLocaleTimeString("en-US", {
         hour: "2-digit",
         minute: "2-digit",
@@ -567,10 +568,10 @@ export const Actions: React.FC<ActionsProps> = ({
           setHistoryList(formattedHistory);
         } else {
           const defaultHistory: FormattedHistoryItem[] = [
-            { id: 1, title: type === "sms" ? "Regular Sms" : type === "whatsapp" ? "Regular WhatsApp" : "Regular Email", date: "12/3/2024", time: "09:28 AM", status: "Sent" },
-            { id: 2, title: type === "sms" ? "Default Sms" : type === "whatsapp" ? "Default WhatsApp" : "Default Email", date: "12/3/2024", time: "09:27 AM", status: "Sent" },
-            { id: 3, title: "Legal Notice", date: "12/3/2024", time: "09:26 AM", status: "Sent" },
-            { id: 4, title: "Legal Notice", date: "11/25/2024", time: "06:07 AM", status: "Sent" },
+            { id: 1, title: type === "sms" ? "Regular Sms" : type === "whatsapp" ? "Regular WhatsApp" : "Regular Email", date: "03/12/2024", time: "09:28 AM", status: "Sent" },
+            { id: 2, title: type === "sms" ? "Default Sms" : type === "whatsapp" ? "Default WhatsApp" : "Default Email", date: "03/12/2024", time: "09:27 AM", status: "Sent" },
+            { id: 3, title: "Legal Notice", date: "03/12/2024", time: "09:26 AM", status: "Sent" },
+            { id: 4, title: "Legal Notice", date: "25/11/2024", time: "06:07 AM", status: "Sent" },
           ];
           setHistoryList(defaultHistory);
         }
@@ -667,7 +668,7 @@ export const Actions: React.FC<ActionsProps> = ({
       const newHistoryItem: FormattedHistoryItem = {
         id: Date.now(),
         title: selectedTemplate?.title || currentModalTitle,
-        date: `${now.getMonth() + 1}/${now.getDate()}/${now.getFullYear()}`,
+        date: formatDateKSA(now),
         time: now.toLocaleTimeString("en-US", {
           hour: "2-digit",
           minute: "2-digit",
@@ -771,7 +772,7 @@ export const Actions: React.FC<ActionsProps> = ({
               onClick={() => setOpenFollowUpModal(true)}
               className="h-10 px-4 rounded-xl border-blue-600 dark:border-blue-500 text-blue-600 dark:text-blue-400 bg-white dark:bg-gray-800 hover:bg-blue-50 dark:hover:bg-blue-900/30 text-xs font-semibold cursor-pointer shadow-xs"
             >
-              Follow up
+             Add Follow up
             </Button>
 
             <Button onClick={() => setOpenEscalateModal(true)} className="h-10 px-6 rounded-xl bg-red-800 hover:bg-red-900 text-white text-xs font-bold shadow-sm cursor-pointer transition-all active:scale-95">

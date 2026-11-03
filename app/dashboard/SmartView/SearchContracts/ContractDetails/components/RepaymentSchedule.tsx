@@ -13,7 +13,7 @@ import {
 import { languageParams } from "@/lib/redux/slices/dashboardApplSlice";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { formatDateKSA } from "@/utils/helpers";
+import { formatDateKSA, formatAmountKSA } from "@/utils/helpers";
 
 export default function RepaymentSchedule({ loanId, cifId }: { loanId: string; cifId: string }) {
   const language = useSelector(languageParams);
@@ -80,12 +80,12 @@ export default function RepaymentSchedule({ loanId, cifId }: { loanId: string; c
       header: "Installment Date",
       cell: ({ getValue }) => formatDateKSA(getValue() as string)
     },
-    { accessorKey: "INSTALMENTAMOUNT", header: "Installment Amount" },
-    { accessorKey: "PRINCIPALAMOUNT", header: "Principal Amount" },
-    { accessorKey: "PROFITAMOUNT", header: "Profit Amount" },
-    { accessorKey: "TAXAMOUNT", header: "Tax Amount" },
-    { accessorKey: "BEGINNINGOS", header: "Beginning Os" },
-    { accessorKey: "CLOSINGOS", header: "Closing Os" },
+    { accessorKey: "INSTALMENTAMOUNT", header: "Installment Amount", cell: ({ getValue }) => formatAmountKSA(getValue()) },
+    { accessorKey: "PRINCIPALAMOUNT", header: "Principal Amount", cell: ({ getValue }) => formatAmountKSA(getValue()) },
+    { accessorKey: "PROFITAMOUNT", header: "Profit Amount", cell: ({ getValue }) => formatAmountKSA(getValue()) },
+    { accessorKey: "TAXAMOUNT", header: "Tax Amount", cell: ({ getValue }) => formatAmountKSA(getValue()) },
+    { accessorKey: "BEGINNINGOS", header: "Beginning Os", cell: ({ getValue }) => formatAmountKSA(getValue()) },
+    { accessorKey: "CLOSINGOS", header: "Closing Os", cell: ({ getValue }) => formatAmountKSA(getValue()) },
   ];
 
   const assetwiseColumns: ColumnDef<any>[] = [
@@ -98,9 +98,9 @@ export default function RepaymentSchedule({ loanId, cifId }: { loanId: string; c
       header: "Installment Date",
       cell: ({ getValue }) => formatDateKSA(getValue() as string)
     },
-    { accessorKey: "INSTALMENTAMOUNT", header: "Installment Amount" },
-    { accessorKey: "PRINCIPALAMOUNTPAID", header: "Principal Amount Paid" },
-    { accessorKey: "RESIDUALAMOUNT", header: "Residual Amount" },
+    { accessorKey: "INSTALMENTAMOUNT", header: "Installment Amount", cell: ({ getValue }) => formatAmountKSA(getValue()) },
+    { accessorKey: "PRINCIPALAMOUNTPAID", header: "Principal Amount Paid", cell: ({ getValue }) => formatAmountKSA(getValue()) },
+    { accessorKey: "RESIDUALAMOUNT", header: "Residual Amount", cell: ({ getValue }) => formatAmountKSA(getValue()) },
   ];
 
   const consolidatedData = (data?.data?.Consolidated || data?.Consolidated || []).map((item: any, idx: number) => ({ ...item, id: idx + 1 }));

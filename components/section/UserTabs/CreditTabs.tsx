@@ -376,12 +376,7 @@ const CreditTabs = ({
 
   const formatDate = (dateStr: string) => {
     if (!dateStr || dateStr === "null") return "-";
-    try {
-      const date = new Date(dateStr);
-      return date.toISOString().split("T")[0];
-    } catch (e) {
-      return dateStr;
-    }
+    return formatDateKSA(dateStr) || "-";
   };
 
   const appDetail = userCreditDetails.APPLICATION_DETAILS[0] || {};
