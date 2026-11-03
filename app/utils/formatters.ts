@@ -1,5 +1,7 @@
-export const formatDate = (date?: string) =>
-  date ? new Date(date).toLocaleDateString() : "—";
+import { formatDateKSA, formatAmountKSA } from "@/utils/helpers";
 
-export const formatAmount = (amount?: number) =>
-  amount ? amount.toLocaleString() : "—";
+export const formatDate = (date?: string | Date | null) =>
+  formatDateKSA(date);
+
+export const formatAmount = (amount?: number | string | null) =>
+  formatAmountKSA(amount);

@@ -9,6 +9,7 @@ import { getCustomerLiabilities, getCustomerDetails } from "../../HandlingAPIs";
 import { languageParams } from "@/lib/redux/slices/dashboardApplSlice";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { formatAmountKSA } from "@/utils/helpers";
 
 export default function LiabilitiesDetails({ cifId }: { cifId: string }) {
   const language = useSelector(languageParams);
@@ -50,7 +51,7 @@ export default function LiabilitiesDetails({ cifId }: { cifId: string }) {
       header: "Actions",
     },
     { accessorKey: "FACILITYTYPECODE", header: "Facility Code" },
-    { accessorKey: "SANCTIONAMOUNT", header: "Sanction Amount" },
+    { accessorKey: "SANCTIONAMOUNT", header: "Sanction Amount", cell: ({ getValue }) => formatAmountKSA(getValue()) },
     {
       accessorKey: "MATURITYDATE",
       header: "Maturity Date",
@@ -82,8 +83,8 @@ export default function LiabilitiesDetails({ cifId }: { cifId: string }) {
         );
       },
     },
-    { accessorKey: "INSTALLMENTAMOUNT", header: "Installment Amount" },
-    { accessorKey: "LASTPAYMENTAMOUNT", header: "Last Payment Amount" },
+    { accessorKey: "INSTALLMENTAMOUNT", header: "Installment Amount", cell: ({ getValue }) => formatAmountKSA(getValue()) },
+    { accessorKey: "LASTPAYMENTAMOUNT", header: "Last Payment Amount", cell: ({ getValue }) => formatAmountKSA(getValue()) },
   ];
 
   const keyMappings = {

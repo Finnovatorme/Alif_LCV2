@@ -13,6 +13,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { languageParams } from "@/lib/redux/slices/dashboardApplSlice";
 import { followupDetailsGet } from "../page";
 import { vbValue, Option } from "@/utils/dropDownApis";
+import { formatDateKSA } from "@/utils/helpers";
 
 interface FollowUpModalProps {
   isOpen: boolean;
@@ -290,10 +291,7 @@ export const FollowUpModal: React.FC<FollowUpModalProps> = ({
 
   const formatDateWithoutTime = (val: any) => {
     if (!val || val === "-") return "-";
-    const str = String(val).trim();
-    if (str.includes("T")) return str.split("T")[0];
-    if (str.includes(" ")) return str.split(" ")[0];
-    return str;
+    return formatDateKSA(val) || "-";
   };
 
   const HoverTextCell: React.FC<{

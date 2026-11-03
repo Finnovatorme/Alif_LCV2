@@ -12,7 +12,9 @@ import { BooleanStatus } from "@/components/ui/BooleanStatus";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth } from "@/hooks/useAuth";
 import { languageParams } from "@/lib/redux/slices/dashboardApplSlice";
+import { ddOptionsParams } from "@/lib/redux/slices/ddValuesSlice";
 import { fetchLCAllocationGroupOptions } from "@/utils/dropDownApis";
+import { formatDateKSA } from "@/utils/helpers";
 import {
   getTargetGroups,
   getIncentiveList,
@@ -29,6 +31,7 @@ function AllocationGroupContent() {
   const searchParams = useSearchParams();
   const { user } = useAuth();
   const selectedLanguage = useSelector(languageParams);
+  const ddValues = useSelector(ddOptionsParams);
   const language = selectedLanguage === "ar" ? 2 : 1;
 
   const currentUserId = String(
@@ -118,6 +121,19 @@ function AllocationGroupContent() {
       isMounted = false;
     };
   }, [language]);
+
+  // Sync group options from Redux cache if available
+  useEffect(() => {
+    if (
+      ddValues?.LCALLOCATIONGROUPS &&
+      Array.isArray(ddValues.LCALLOCATIONGROUPS) &&
+      ddValues.LCALLOCATIONGROUPS.length > 0
+    ) {
+      setGroupOptions((prev) =>
+        prev.length === 0 ? ddValues.LCALLOCATIONGROUPS : prev
+      );
+    }
+  }, [ddValues]);
 
   // Fetch Table Data
   const fetchData = useCallback(async () => {
@@ -269,48 +285,99 @@ function AllocationGroupContent() {
       },
       {
         id: "LCALLOCATIONGROUP",
-        accessorFn: (row: any) =>
-          row.ALLOCATIONGROUP ||
-          row.LCALLOCATIONGROUP ||
-          row.ALLOCATIONGROUPNAME ||
-          groupOptions.find((g) => String(g.id) === String(row.VB_LCALLOCATIONGROUP))?.name ||
-          (row.VB_LCALLOCATIONGROUP ? `Group ${row.VB_LCALLOCATIONGROUP}` : "-"),
+        accessorFn: (row: any) => {
+          const direct =
+            row?.ALLOCATIONGROUP ||
+            row?.allocationGroup ||
+            row?.LCALLOCATIONGROUP ||
+            row?.lcAllocationGroup ||
+            row?.ALLOCATIONGROUPNAME ||
+            row?.allocationGroupName ||
+            row?.VALDESC1 ||
+            row?.valdesc1;
+          if (direct) return direct;
+          const gId =
+            row?.VB_LCALLOCATIONGROUP ??
+            row?.vb_LcAllocationGroup ??
+            row?.vb_lcAllocationGroup ??
+            row?.GROUPID ??
+            row?.groupId;
+          const found = groupOptions.find((g) => String(g.id) === String(gId));
+          return found ? found.name : gId ? `Group ${gId}` : "-";
+        },
         header: "LC Allocation Group",
         cell: ({ row }: any) => {
+          const r = row.original;
           const direct =
-            row.original.ALLOCATIONGROUP ||
-            row.original.LCALLOCATIONGROUP ||
-            row.original.ALLOCATIONGROUPNAME;
+            r?.ALLOCATIONGROUP ||
+            r?.allocationGroup ||
+            r?.LCALLOCATIONGROUP ||
+            r?.lcAllocationGroup ||
+            r?.ALLOCATIONGROUPNAME ||
+            r?.allocationGroupName ||
+            r?.VALDESC1 ||
+            r?.valdesc1;
           if (direct) return direct;
-          const found = groupOptions.find(
-            (g) => String(g.id) === String(row.original.VB_LCALLOCATIONGROUP)
-          );
-          return found ? found.name : row.original.VB_LCALLOCATIONGROUP || "-";
+          const gId =
+            r?.VB_LCALLOCATIONGROUP ??
+            r?.vb_LcAllocationGroup ??
+            r?.vb_lcAllocationGroup ??
+            r?.GROUPID ??
+            r?.groupId;
+          const found = groupOptions.find((g) => String(g.id) === String(gId));
+          return found ? found.name : gId ? `Group ${gId}` : "-";
         },
       },
       {
         id: "INCENTIVENAME",
-        accessorFn: (row: any) =>
-          row.INCENTIVENAME ||
-          row.INCENTIVECODE ||
-          row.INCENTIVENAME1 ||
-          incentiveOptions.find((inc) => String(inc.TCMIRECID) === String(row.INCENTIVEID))?.INCENTIVENAME1 ||
-          incentiveOptions.find((inc) => String(inc.TCMIRECID) === String(row.INCENTIVEID))?.INCENTIVECODE ||
-          (row.INCENTIVEID ? `Incentive ${row.INCENTIVEID}` : "-"),
-        header: "Incentive",
-        cell: ({ row }: any) => {
+        accessorFn: (row: any) => {
           const direct =
-            row.original.INCENTIVENAME ||
-            row.original.INCENTIVECODE ||
-            row.original.INCENTIVENAME1;
+            row?.INCENTIVENAME ||
+            row?.incentiveName ||
+            row?.INCENTIVECODE ||
+            row?.incentiveCode ||
+            row?.INCENTIVENAME1 ||
+            row?.incentiveName1;
           if (direct) return direct;
+          const incId =
+            row?.INCENTIVEID ??
+            row?.incentiveId ??
+            row?.TCMIRECID ??
+            row?.tcmiRecid;
           const found = incentiveOptions.find(
-            (inc) => String(inc.TCMIRECID) === String(row.original.INCENTIVEID)
+            (inc) =>
+              String(inc.TCMIRECID ?? (inc as any).tcmiRecid) === String(incId)
           );
           return found
-            ? (found.INCENTIVENAME1 || found.INCENTIVECODE)
-            : row.original.INCENTIVEID
-            ? `Incentive ${row.original.INCENTIVEID}`
+            ? (found.INCENTIVENAME1 || found.INCENTIVECODE || (found as any).incentiveName1 || (found as any).incentiveCode)
+            : incId
+            ? `Incentive ${incId}`
+            : "-";
+        },
+        header: "Incentive",
+        cell: ({ row }: any) => {
+          const r = row.original;
+          const direct =
+            r?.INCENTIVENAME ||
+            r?.incentiveName ||
+            r?.INCENTIVECODE ||
+            r?.incentiveCode ||
+            r?.INCENTIVENAME1 ||
+            r?.incentiveName1;
+          if (direct) return direct;
+          const incId =
+            r?.INCENTIVEID ??
+            r?.incentiveId ??
+            r?.TCMIRECID ??
+            r?.tcmiRecid;
+          const found = incentiveOptions.find(
+            (inc) =>
+              String(inc.TCMIRECID ?? (inc as any).tcmiRecid) === String(incId)
+          );
+          return found
+            ? (found.INCENTIVENAME1 || found.INCENTIVECODE || (found as any).incentiveName1 || (found as any).incentiveCode)
+            : incId
+            ? `Incentive ${incId}`
             : "-";
         },
       },
@@ -323,12 +390,8 @@ function AllocationGroupContent() {
       {
         accessorKey: "UPDATEDATE",
         header: "Update Date",
-        cell: ({ row }: any) => {
-          const val = row.original.UPDATEDATE || row.original.MAKEDATE;
-          if (!val) return "-";
-          const d = new Date(val);
-          return isNaN(d.getTime()) ? "-" : d.toLocaleDateString();
-        },
+        cell: ({ row }: any) =>
+          formatDateKSA(row.original.UPDATEDATE || row.original.MAKEDATE),
       },
       {
         accessorKey: "RECSTATUS",

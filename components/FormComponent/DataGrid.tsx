@@ -72,7 +72,12 @@ import {
 } from "@/components/ui/Select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Spinner } from "../ui/spinner";
-import { formatDateKSA, isDateString } from "@/utils/helpers";
+import {
+  formatDateKSA,
+  isDateString,
+  formatAmountKSA,
+  isAmountField,
+} from "@/utils/helpers";
 
 /** ✅ TS helpers (no design change) */
 type MaybePromise<T = unknown> = T | Promise<T>;
@@ -230,11 +235,15 @@ export function ReusableDataTable<T extends Record<string, any>>(
 
     if (col.id === "actions") {
       if (col.cell) {
-        allColumns.push(col);
+        allColumns.push({
+          ...col,
+          meta: { ...(col.meta as any), hasCustomCell: true },
+        });
         return;
       }
       allColumns.push({
         ...col,
+        meta: { ...(col.meta as any), hasCustomCell: true },
         cell: ({ row }: { row: Row<T> }) => (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -297,6 +306,7 @@ export function ReusableDataTable<T extends Record<string, any>>(
         allColumns.push({
           id: "accumulate",
           header: "Accumulate",
+          meta: { ...(col.meta as any), hasCustomCell: true },
           cell: ({ row }: { row: Row<T> }) => (
             <Button
               size="sm"
@@ -322,7 +332,13 @@ export function ReusableDataTable<T extends Record<string, any>>(
       return;
     }
 
-    allColumns.push(col);
+    allColumns.push({
+      ...col,
+      meta: {
+        ...(col.meta as any),
+        hasCustomCell: typeof col.cell === "function",
+      },
+    });
   });
 
   const table = useReactTable({
@@ -435,24 +451,37 @@ export function ReusableDataTable<T extends Record<string, any>>(
           const isSpecialColumn = ["select", "actions", "accumulate"].includes(
             columnId,
           );
+          const hasCustomCell =
+            isSpecialColumn || Boolean((cell.column.columnDef.meta as any)?.hasCustomCell);
+
           const isNullOrEmpty =
             value === null ||
             value === undefined ||
             String(value).trim() === "" ||
             String(value) === "null";
 
+          const isAmount =
+            !isDate &&
+            !hasCustomCell &&
+            !isNullOrEmpty &&
+            isAmountField(columnId) &&
+            !isNaN(Number(String(value).replace(/,/g, ""))) &&
+            typeof value !== "boolean";
+
           return (
             <TableCell
               key={cell.id}
               className="px-4 py-2 text-sm text-center text-gray-900 dark:text-gray-200"
             >
-              {isSpecialColumn
+              {hasCustomCell
                 ? flexRender(cell.column.columnDef.cell, cell.getContext())
                 : isDate
                   ? formatDateKSA(value)
                   : isNullOrEmpty
                     ? "-"
-                    : flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    : isAmount
+                      ? formatAmountKSA(value)
+                      : flexRender(cell.column.columnDef.cell, cell.getContext())}
             </TableCell>
           );
         })}
@@ -479,6 +508,9 @@ export function ReusableDataTable<T extends Record<string, any>>(
         const value = row.getValue(col.id);
         if (value === null || value === undefined) return "";
         if (isDateString(value)) return formatDateKSA(value);
+        if (isAmountField(col.id) && !isNaN(Number(String(value).replace(/,/g, "")))) {
+          return formatAmountKSA(value);
+        }
         return String(value);
       })
     );

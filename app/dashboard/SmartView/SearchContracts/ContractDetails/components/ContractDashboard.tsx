@@ -296,7 +296,7 @@ function DetailsCard({ title, icon: Icon, children }: { title: string; icon: any
 
 function Field({ label, value, isAmount, isBadge, color, suffix = "", className = "" }: { label: string; value: any; isAmount?: boolean; isBadge?: boolean; color?: string; suffix?: string; className?: string }) {
   const displayValue = isAmount 
-    ? (value ? Number(value).toLocaleString(undefined, { minimumFractionDigits: 2 }) : "0.00")
+    ? (value ? Number(value).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "0.00")
     : (value || "-");
 
   return (
