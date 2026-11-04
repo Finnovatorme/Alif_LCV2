@@ -13,8 +13,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { languageParams } from "@/lib/redux/slices/dashboardApplSlice";
 import { followupDetailsGet } from "../page";
 import { vbValue, Option } from "@/utils/dropDownApis";
-import { formatDateKSA } from "@/utils/helpers";
-
+import { formatDateKSA, parseDateToISO } from "@/utils/helpers";
+import moment from "moment"
 interface FollowUpModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -194,13 +194,8 @@ export const FollowUpModal: React.FC<FollowUpModalProps> = ({
       const hostUrl = process.env.HOST_API_KEY;
       const nowIso = new Date().toISOString();
 
-      const nextActDateIso = dataToPost.nextActionDate
-        ? new Date(dataToPost.nextActionDate).toISOString()
-        : nowIso;
-
-      const fulfillmentDateIso = dataToPost.resultFulfillmentDate
-        ? new Date(dataToPost.resultFulfillmentDate).toISOString()
-        : nowIso;
+      const nextActDateIso = parseDateToISO(dataToPost.nextActionDate, nowIso);
+      const fulfillmentDateIso = parseDateToISO(dataToPost.resultFulfillmentDate, nowIso);
 
       const payload = {
         tmcaRecId: Number(followupData?.TMCARECID || followupData?.data?.TMCARECID || 0),
@@ -417,7 +412,7 @@ export const FollowUpModal: React.FC<FollowUpModalProps> = ({
     {
       accessorKey: "NEXTACTIONDATE",
       header: "Next Action Date",
-      cell: ({ row }) => formatDateWithoutTime(getRowValue(row.original, ["NEXTACTIONDATE", "nextActionDate"])),
+      cell: ({ row }) => moment(row.original, ["NEXTACTIONDATE", "nextActionDate"]).format("dd/mm/yyyy"),
     },
     {
       accessorKey: "FULFILLMENTDATE",

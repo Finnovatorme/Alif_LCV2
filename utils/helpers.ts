@@ -56,6 +56,47 @@ export function isDateString(v: unknown): v is string {
   return false;
 }
 
+export function parseDateFlexible(val: unknown): Date | undefined {
+  if (!val || val === "null" || val === "undefined" || val === "—" || val === "-") return undefined;
+  if (val instanceof Date) return isNaN(val.getTime()) ? undefined : val;
+  if (typeof val === "string") {
+    const trimmed = val.trim();
+    if (!trimmed) return undefined;
+
+    // Matches DD/MM/YYYY or DD-MM-YYYY
+    const dmyMatch = trimmed.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
+    if (dmyMatch) {
+      const day = parseInt(dmyMatch[1], 10);
+      const month = parseInt(dmyMatch[2], 10) - 1;
+      const year = parseInt(dmyMatch[3], 10);
+      const d = new Date(year, month, day);
+      if (!isNaN(d.getTime()) && d.getDate() === day && d.getMonth() === month) {
+        return d;
+      }
+    }
+
+    // Matches YYYY-MM-DD or YYYY/MM/DD
+    const ymdMatch = trimmed.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/);
+    if (ymdMatch) {
+      const year = parseInt(ymdMatch[1], 10);
+      const month = parseInt(ymdMatch[2], 10) - 1;
+      const day = parseInt(ymdMatch[3], 10);
+      const d = new Date(year, month, day);
+      if (!isNaN(d.getTime())) return d;
+    }
+
+    const d = new Date(trimmed);
+    if (!isNaN(d.getTime())) return d;
+  }
+  return undefined;
+}
+
+export function parseDateToISO(val: unknown, fallback?: string): string {
+  const d = parseDateFlexible(val);
+  if (d) return d.toISOString();
+  return fallback ?? new Date().toISOString();
+}
+
 // ✅ KSA standard date format: DD/MM/YYYY (e.g. 24/02/2026)
 export const formatDateKSA = (
   value: string | Date | null | undefined,
@@ -64,14 +105,12 @@ export const formatDateKSA = (
 
   if (typeof value === "string") {
     const trimmed = value.trim();
-    // If already in DD/MM/YYYY format, keep it
     if (/^\d{2}\/\d{2}\/\d{4}$/.test(trimmed)) return trimmed;
-    // If DD-MM-YYYY format, convert to DD/MM/YYYY
     if (/^\d{2}-\d{2}-\d{4}$/.test(trimmed)) return trimmed.replace(/-/g, "/");
   }
 
-  const d = value instanceof Date ? value : new Date(value);
-  if (Number.isNaN(d.getTime())) {
+  const d = parseDateFlexible(value);
+  if (!d || Number.isNaN(d.getTime())) {
     return typeof value === "string" ? value : "-";
   }
 

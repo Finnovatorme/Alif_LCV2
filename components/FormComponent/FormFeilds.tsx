@@ -1,7 +1,10 @@
+"use client";
+
 import { ControllerRenderProps } from "react-hook-form";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
-import { Check, ChevronsUpDown, Hash, Menu } from "lucide-react";
+import { Check, ChevronsUpDown, Hash, Menu, Calendar as CalendarIcon } from "lucide-react";
+import { parseDateFlexible, formatDateKSA } from "@/utils/helpers";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Switch } from "@/components/ui/switch";
@@ -21,6 +24,100 @@ import {
 import { cn } from "@/lib/utils";
 import { Calendar } from "../ui/calendar";
 
+function DateField({
+  config,
+  field,
+  errorClass,
+  renderError,
+}: {
+  config: FieldConfig & { error?: string };
+  field: ControllerRenderProps<any, string>;
+  errorClass: string;
+  renderError: () => React.ReactNode;
+}) {
+  const [open, setOpen] = useState(false);
+
+  const parsedDate = parseDateFlexible(field.value);
+  const displayVal = parsedDate ? formatDateKSA(parsedDate) : (typeof field.value === "string" ? field.value : "");
+  const [textValue, setTextValue] = useState(displayVal);
+
+  useEffect(() => {
+    const d = parseDateFlexible(field.value);
+    setTextValue(d ? formatDateKSA(d) : (typeof field.value === "string" ? field.value : ""));
+  }, [field.value]);
+
+  const handleSelect = (selectedDate: Date | undefined) => {
+    if (selectedDate) {
+      const formatted = formatDateKSA(selectedDate);
+      setTextValue(formatted);
+      field.onChange(formatted);
+      setOpen(false);
+    } else {
+      setTextValue("");
+      field.onChange("");
+    }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setTextValue(val);
+    const parsed = parseDateFlexible(val);
+    if (parsed) {
+      field.onChange(formatDateKSA(parsed));
+    } else {
+      field.onChange(val);
+    }
+  };
+
+  return (
+    <>
+      <FormLabel>
+        {config.label}{" "}
+        {config.required && <span className="text-red-500">*</span>}
+      </FormLabel>
+
+      <div className="relative flex items-center">
+        <Input
+          type="text"
+          placeholder={config.placeholder || "dd/mm/yyyy"}
+          value={textValue}
+          onChange={handleInputChange}
+          disabled={config.disabled}
+          readOnly={config.readOnly}
+          className={cn("pr-10", errorClass)}
+        />
+
+        <Popover open={open} onOpenChange={setOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              disabled={config.disabled || config.readOnly}
+              className="absolute right-1 h-8 w-8 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+            >
+              <CalendarIcon className="h-4 w-4" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="end">
+            <Calendar
+              mode="single"
+              selected={parsedDate}
+              captionLayout="dropdown"
+              defaultMonth={parsedDate || new Date()}
+              onSelect={handleSelect}
+            />
+          </PopoverContent>
+        </Popover>
+      </div>
+
+      {renderError()}
+    </>
+  );
+}
+
+
+
 export function FormFeilds(
   config: FieldConfig & { error?: string },
   field: ControllerRenderProps<any, string>,
@@ -36,6 +133,15 @@ export function FormFeilds(
 
   switch (config.type) {
     case "date":
+      return (
+        <DateField
+          config={config}
+          field={field}
+          errorClass={errorClass}
+          renderError={renderError}
+        />
+      );
+
     case "time":
     case "input":
     case "text":
