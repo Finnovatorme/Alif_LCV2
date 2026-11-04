@@ -1,3 +1,4 @@
+import { parseDateToISO } from "@/utils/helpers";
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
@@ -354,13 +355,8 @@ export default function MessageCampaignPage() {
         const currentUserId = String(user?.Userid || user?.id || "1");
         const nowIso = new Date().toISOString();
 
-        const startDateIso = formData.SCHEDULESTARTDATE
-            ? new Date(formData.SCHEDULESTARTDATE).toISOString()
-            : nowIso;
-
-        const endDateIso = formData.SCHEDULEENDDATE
-            ? new Date(formData.SCHEDULEENDDATE).toISOString()
-            : startDateIso;
+        const startDateIso = parseDateToISO(formData.SCHEDULESTARTDATE, nowIso);
+        const endDateIso = parseDateToISO(formData.SCHEDULEENDDATE, startDateIso);
 
         const formattedScheduleStartTime = formatTimeToISO(formData.SCHEDULESTARTTIME);
         const formattedScheduleTime = formatTimeToISO(formData.SCHEDULETIME);
