@@ -17,7 +17,7 @@ import { fetchLCAllocationGroupOptions } from "@/utils/dropDownApis";
 import { useAuth } from "@/hooks/useAuth";
 import axios from "@/utils/axios";
 import { BooleanStatus } from "@/components/ui/BooleanStatus";
-import { formatDateKSA } from "@/utils/helpers";
+import { formatDateKSA, parseDateToISO } from "@/utils/helpers";
 
 const page = () => {
   const router = useRouter();
@@ -96,7 +96,15 @@ const page = () => {
       { type: "input", name: "targetName1", label: "Target Name 1", required: true },
       { type: "input", name: "targetName2", label: "Target Name 2" },
       { type: "input", name: "targetName3", label: "Target Name 3" },
-      { type: "number", name: "minTarget", label: "Minimum Target", rules: { max: 100 } },
+      {
+        type: "number",
+        name: "minTarget",
+        label: "Minimum Target",
+        placeholder: "0 - 100",
+        min: 0,
+        max: 100,
+        rules: { min: 0, max: 100 },
+      },
       { type: "date", name: "targetStartDate", label: "Target Start Date" },
       { type: "date", name: "targetEndDate", label: "Target End Date" },
     ];
@@ -231,8 +239,24 @@ const page = () => {
     const today = new Date().toISOString();
     const updateBy = user?.Userid || user?.userId || "1";
 
+    let cleanMinTarget =
+      dataToPost.minTarget !== null &&
+      dataToPost.minTarget !== undefined &&
+      dataToPost.minTarget !== ""
+        ? Number(dataToPost.minTarget)
+        : null;
+
+    if (cleanMinTarget !== null && !isNaN(cleanMinTarget)) {
+      if (cleanMinTarget < 0) cleanMinTarget = 0;
+      if (cleanMinTarget > 100) cleanMinTarget = 100;
+    }
+
     const payload = {
       ...dataToPost,
+      minTarget: cleanMinTarget,
+      MINTARGET: cleanMinTarget,
+      targetStartDate: dataToPost.targetStartDate ? parseDateToISO(dataToPost.targetStartDate, dataToPost.targetStartDate) : null,
+      targetEndDate: dataToPost.targetEndDate ? parseDateToISO(dataToPost.targetEndDate, dataToPost.targetEndDate) : null,
       UPDATEBY: updateBy,
       UPDATEDATE: today,
       RECSTATUS: editData ? (dataToPost.targetStatus !== undefined ? Boolean(dataToPost.targetStatus) : true) : true,
@@ -312,7 +336,7 @@ const page = () => {
         title="Targets"
         headerActions={
           <Button onClick={openAdd} disabled={loading} className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl">
-            Add New Record
+            Add Target
           </Button>
         }
         loading={loading}

@@ -165,15 +165,34 @@ export function EditModal({
       control={control}
       rules={{
         validate: (value) => {
-          if (!fieldConfig.required) return true;
+          if (fieldConfig.required) {
+            const empty =
+              value === undefined ||
+              value === null ||
+              value === "" ||
+              (typeof value === "number" && Number.isNaN(value));
 
-          const empty =
-            value === undefined ||
-            value === null ||
-            value === "" ||
-            (typeof value === "number" && Number.isNaN(value));
+            if (empty) return `${fieldConfig.label} is required`;
+          }
 
-          return empty ? `${fieldConfig.label} is required` : true;
+          const minVal = fieldConfig.min !== undefined ? fieldConfig.min : (fieldConfig.rules as any)?.min;
+          const maxVal = fieldConfig.max !== undefined ? fieldConfig.max : (fieldConfig.rules as any)?.max;
+
+          if (value !== undefined && value !== null && value !== "" && !Number.isNaN(Number(value))) {
+            const num = Number(value);
+            if (minVal !== undefined && num < Number(minVal)) {
+              return `${fieldConfig.label} must be at least ${minVal}`;
+            }
+            if (maxVal !== undefined && num > Number(maxVal)) {
+              return `${fieldConfig.label} cannot exceed ${maxVal}`;
+            }
+          }
+
+          if (typeof (fieldConfig.rules as any)?.validate === "function") {
+            return (fieldConfig.rules as any).validate(value);
+          }
+
+          return true;
         },
       }}
       render={({ field, fieldState }) => (

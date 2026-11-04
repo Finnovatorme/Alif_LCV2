@@ -267,6 +267,9 @@ export const FollowUpModal: React.FC<FollowUpModalProps> = ({
 
       toast.success("Follow Up record added successfully!");
       fetchHistory();
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("followup-added"));
+      }
     } catch (err) {
       console.error("Error adding follow up:", err);
       toast.error("Failed to add follow up details");
@@ -412,7 +415,7 @@ export const FollowUpModal: React.FC<FollowUpModalProps> = ({
     {
       accessorKey: "NEXTACTIONDATE",
       header: "Next Action Date",
-      cell: ({ row }) => moment(row.original, ["NEXTACTIONDATE", "nextActionDate"]).format("dd/mm/yyyy"),
+      cell: ({ row }) => formatDateWithoutTime(getRowValue(row.original, ["NEXTACTIONDATE", "nextActionDate"])),
     },
     {
       accessorKey: "FULFILLMENTDATE",
