@@ -164,7 +164,9 @@ export function FormFeilds(
         </>
       );
 
-    case "number":
+    case "number": {
+      const minVal = (config as any).min !== undefined ? (config as any).min : (config as any).rules?.min;
+      const maxVal = (config as any).max !== undefined ? (config as any).max : (config as any).rules?.max;
       return (
         <>
           <FormLabel>
@@ -175,11 +177,34 @@ export function FormFeilds(
             <Hash className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground opacity-50" />
             <Input
               type="number"
+              min={minVal}
+              max={maxVal}
               placeholder={config.placeholder}
               value={field.value ?? ""}
+              onKeyDown={(e) => {
+                if (
+                  minVal !== undefined &&
+                  Number(minVal) >= 0 &&
+                  (e.key === "-" || e.key === "Subtract" || e.key === "e" || e.key === "E")
+                ) {
+                  e.preventDefault();
+                }
+              }}
               onChange={(e) => {
                 const v = e.target.value;
-                field.onChange(v === "" ? null : Number(v));
+                if (v === "") {
+                  field.onChange(null);
+                  return;
+                }
+                let num = Number(v);
+                if (isNaN(num)) return;
+                if (minVal !== undefined && Number(minVal) >= 0 && num < Number(minVal)) {
+                  num = Number(minVal);
+                }
+                if (maxVal !== undefined && num > Number(maxVal)) {
+                  num = Number(maxVal);
+                }
+                field.onChange(num);
               }}
               onBlur={field.onBlur}
               ref={field.ref}
@@ -191,6 +216,7 @@ export function FormFeilds(
           {renderError()}
         </>
       );
+    }
 
     case "multiline":
     case "textarea":

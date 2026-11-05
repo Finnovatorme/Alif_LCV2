@@ -40,6 +40,9 @@ export interface FieldConfig {
   rows?: number;
   className?: string;
   inputClassName?: string;
+  min?: number;
+  max?: number;
+  rules?: any;
 
   // keep extra keys you already pass sometimes
   error?: string;

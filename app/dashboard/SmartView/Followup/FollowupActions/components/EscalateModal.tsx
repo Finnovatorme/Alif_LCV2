@@ -31,6 +31,7 @@ interface EscalateModalProps {
   isOpen: boolean;
   onClose: () => void;
   cifId?: number | string | null;
+  tmcaRecId?: number | string | null;
   customerDetails?: Record<string, any>;
   followupDetails?: Record<string, any>;
   loanContracts?: any[];
@@ -41,6 +42,7 @@ export const EscalateModal: React.FC<EscalateModalProps> = ({
   isOpen,
   onClose,
   cifId,
+  tmcaRecId: propTmcaRecId,
   customerDetails = {},
   followupDetails = {},
   loanContracts = [],
@@ -210,19 +212,73 @@ export const EscalateModal: React.FC<EscalateModalProps> = ({
         loanContracts?.[0]?.FINANCIERID ||
         0
       );
-      
+
+      const resolveTmcaRecId = (): number => {
+        const candidates = [
+          propTmcaRecId,
+          followupDetails?.TMCARECID,
+          followupDetails?.tmcarecid,
+          followupDetails?.tmcaRecId,
+          followupDetails?.TmcaRecId,
+          customerDetails?.TMCARECID,
+          customerDetails?.tmcarecid,
+          customerDetails?.tmcaRecId,
+          customerDetails?.TmcaRecId,
+          smartView?.TMCARECID,
+          smartView?.tmcarecid,
+          smartView?.tmcaRecId,
+          smartView?.TmcaRecId,
+          loanContracts?.[0]?.TMCARECID,
+          loanContracts?.[0]?.tmcarecid,
+          loanContracts?.[0]?.tmcaRecId,
+        ];
+
+        for (const val of candidates) {
+          if (val !== undefined && val !== null && !isNaN(Number(val)) && Number(val) > 0) {
+            return Number(val);
+          }
+        }
+
+        if (typeof window !== "undefined") {
+          try {
+            const saved = localStorage.getItem("followupParams");
+            if (saved) {
+              const parsed = JSON.parse(saved);
+              const val =
+                parsed?.TMCARECID ??
+                parsed?.tmcarecid ??
+                parsed?.tmcaRecId ??
+                parsed?.TmcaRecId;
+              if (val !== undefined && val !== null && !isNaN(Number(val)) && Number(val) > 0) {
+                return Number(val);
+              }
+            }
+          } catch (e) {
+            console.error("Error reading TMCARECID from localStorage:", e);
+          }
+        }
+
+        return 0;
+      };
+
+      const resolvedTmcaRecId = resolveTmcaRecId();
+      const finalFinancierId = resolvedFinancierId > 0 ? resolvedFinancierId : 3;
+      const finalCifId = resolvedCif > 0 ? resolvedCif : 40403;
+      const finalAppId = resolvedAppId > 0 ? resolvedAppId : 60364;
+
       const payload: AddEscalationPayload = {
-        // financierid: resolvedFinancierId,
-        // cifid: resolvedCif,
-        financierid: 3,
-        cifid: 40403,
-        appid: 60364,
+        financierid: finalFinancierId,
+        cifid: finalCifId,
+        appid: finalAppId,
         loanid: resolvedLoanId,
         escalatedfromuserid: currentUserId,
         escalatedtouserid: isEveryone ? "" : selectedUserId,
         isescalatedtoeveryone: isEveryone,
         comments: comments.trim(),
         maker: currentUserId,
+        TMCARECID: resolvedTmcaRecId,
+        tmcarecid: resolvedTmcaRecId,
+        tmcaRecId: resolvedTmcaRecId,
       };
 
       const res = await addNewEscalation(payload);

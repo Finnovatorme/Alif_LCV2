@@ -1063,6 +1063,18 @@ export const Actions: React.FC<ActionsProps> = ({
         isOpen={openEscalateModal}
         onClose={() => setOpenEscalateModal(false)}
         cifId={activeCifId}
+        tmcaRecId={
+          followupDetails?.TMCARECID ??
+          followupDetails?.tmcarecid ??
+          followupDetails?.tmcaRecId ??
+          customerDetails?.TMCARECID ??
+          customerDetails?.tmcarecid ??
+          customerDetails?.tmcaRecId ??
+          smartView?.TMCARECID ??
+          smartView?.tmcarecid ??
+          smartView?.tmcaRecId ??
+          null
+        }
         customerDetails={customerDetails}
         followupDetails={followupDetails}
         loanContracts={loanContracts}
