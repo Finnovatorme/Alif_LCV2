@@ -221,7 +221,7 @@ export default function FollowupPage() {
                 { params }
             );
 
-            const data = response.data;
+            const data = response.data?.data;
             if (Array.isArray(data)) {
                 setTableRows(data);
                 if (data.length > 0) {

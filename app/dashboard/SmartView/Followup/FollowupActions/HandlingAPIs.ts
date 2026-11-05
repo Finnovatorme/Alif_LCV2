@@ -306,15 +306,19 @@ export interface EscalationUserItem {
 }
 
 export interface AddEscalationPayload {
-  financierid: number;
-  cifid: number;
-  appid: number;
-  loanid: number;
+  financierid?: number;
+  cifid?: number;
+  appid?: number;
+  loanid?: number;
   escalatedfromuserid: string;
   escalatedtouserid: string;
   isescalatedtoeveryone: boolean;
   comments: string;
   maker: string;
+  TMCARECID?: number;
+  tmcarecid?: number;
+  tmcaRecId?: number;
+  [key: string]: any;
 }
 
 /**
@@ -369,11 +373,22 @@ export const getEscalationUsers = async (params: {
  * 10. Add New Escalation
  * Endpoint: POST /api/Escalation/addnewescalation
  */
-export const addNewEscalation = async (payload: AddEscalationPayload) => {
+export const addNewEscalation = async (
+  payload: AddEscalationPayload,
+  extraParams?: Record<string, any>
+) => {
   const hostUrl = process.env.HOST_API_KEY || "https://demo.finnovator.com.sa:8015";
+  const params: Record<string, any> = { ...extraParams };
+  const tmcaVal = payload.TMCARECID ?? payload.tmcarecid ?? payload.tmcaRecId;
+  if (tmcaVal !== undefined && tmcaVal !== null && Number(tmcaVal) > 0) {
+    params.TMCARECID = Number(tmcaVal);
+    params.tmcarecid = Number(tmcaVal);
+    params.tmcaRecId = Number(tmcaVal);
+  }
   const response = await axios.post(
     `${hostUrl}/api/Escalation/addnewescalation`,
-    payload
+    payload,
+    Object.keys(params).length > 0 ? { params } : undefined
   );
   return response.data;
 };

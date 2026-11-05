@@ -10,6 +10,7 @@ import { User, AlertTriangle, CheckCircle2 } from "lucide-react";
 import { Actions } from "./components/Actions";
 import { FinancialCustomerDetails } from "./components/FinancialCustomerDetails";
 import { DemographicCustomerDetails } from "./components/DemographicCustomerDetails";
+import { FollowUpHistoryTable } from "./components/FollowUpHistoryTable";
 
 import {
   followupCustomerDetailsGet,
@@ -40,6 +41,7 @@ export default function FollowupActionsPage() {
   const [loading, setLoading] = useState(true);
   const [customerDetails, setCustomerDetails] = useState<Record<string, any>>({});
   const [followupDetails, setFollowupDetails] = useState<Record<string, any>>({});
+  const [historyList, setHistoryList] = useState<any[]>([]);
   const [loanContracts, setLoanContracts] = useState<any[]>([]);
   const [cifId, setCifId] = useState<number | string | null>(null);
   const [language, setLanguage] = useState<number>(1);
@@ -109,10 +111,14 @@ export default function FollowupActionsPage() {
           setCustomerDetails((prev) => ({ ...prev, ...custRes }));
         }
 
-        if (Array.isArray(folRes) && folRes.length > 0) {
-          setFollowupDetails(folRes[0]);
+        if (Array.isArray(folRes)) {
+          setHistoryList(folRes);
+          if (folRes.length > 0) {
+            setFollowupDetails(folRes[0]);
+          }
         } else if (folRes && typeof folRes === "object" && !(folRes as any).error) {
           setFollowupDetails(folRes);
+          setHistoryList(Array.isArray((folRes as any).data) ? (folRes as any).data : [folRes]);
         }
 
         if (Array.isArray(contractsRes)) {
@@ -225,10 +231,19 @@ export default function FollowupActionsPage() {
           <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
-          <FinancialCustomerDetails data={combinedData} />
-          <DemographicCustomerDetails data={combinedData} />
-        </div>
+        <>
+          <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
+            <FinancialCustomerDetails data={combinedData} />
+            <DemographicCustomerDetails data={combinedData} />
+          </div>
+
+          {/* Follow Up History Records Table at the very bottom */}
+          <FollowUpHistoryTable
+            cifId={cifId}
+            language={language}
+            initialData={historyList}
+          />
+        </>
       )}
     </div>
   );
