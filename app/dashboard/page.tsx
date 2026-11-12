@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import axios from "@/utils/axios";
 import { useDispatch, useSelector } from "react-redux";
@@ -32,6 +32,7 @@ export default function Page() {
     PENDING_FOLLOWUP: [],
   });
   const [followUpCount, setFollowUpCount] = useState(0);
+  const [collectorsData, setCollectorsData] = useState<Record<string, any>>({});
   const [dashboardLoading, setDashboardLoading] = useState(true);
 
   const handleViewDetailsPage = (row: any) => {
@@ -94,39 +95,48 @@ export default function Page() {
     },
   ];
 
-  const fetchDashboardData = useCallback(async () => {
-    let resolvedUserId: string | number | undefined =
-      user?.UserId ||
-      user?.userId ||
-      user?.Userid ||
-      user?.USERID ||
-      user?.username ||
-      user?.Username ||
-      user?.Username1 ||
-      user?.id;
+  const resolvedUserId =
+    user?.UserId ||
+    user?.userId ||
+    user?.Userid ||
+    user?.USERID ||
+    user?.username ||
+    user?.Username ||
+    user?.Username1 ||
+    user?.id;
 
-    if (!resolvedUserId && typeof window !== "undefined") {
-      try {
-        const stored = localStorage.getItem("authData");
-        if (stored) {
-          const p = JSON.parse(stored);
-          resolvedUserId =
-            p?.UserId ||
-            p?.userId ||
-            p?.Userid ||
-            p?.USERID ||
-            p?.username ||
-            p?.Username ||
-            p?.Username1 ||
-            p?.id;
-        }
-      } catch (e) {
-        console.error("Error reading authData from localStorage:", e);
+  const getStoredUserId = useCallback(() => {
+    if (typeof window === "undefined") return null;
+    try {
+      const stored = localStorage.getItem("authData");
+      if (stored) {
+        const p = JSON.parse(stored);
+        return (
+          p?.UserId ||
+          p?.userId ||
+          p?.Userid ||
+          p?.USERID ||
+          p?.username ||
+          p?.Username ||
+          p?.Username1 ||
+          p?.id ||
+          null
+        );
       }
+    } catch (e) {
+      console.error("Error reading authData from localStorage:", e);
     }
+    return null;
+  }, []);
 
-    if (!resolvedUserId) {
-      resolvedUserId = "aadnan";
+  const activeUserId = resolvedUserId || getStoredUserId();
+  const lastFetchedKeyRef = useRef<string>("");
+
+  const fetchDashboardData = useCallback(async (userIdToFetch?: string | number) => {
+    const targetUserId = userIdToFetch || activeUserId;
+
+    if (!targetUserId) {
+      return;
     }
 
     setDashboardLoading(true);
@@ -134,14 +144,30 @@ export default function Page() {
       const hostUrl =
         process.env.HOST_API_KEY || "https://demo.finnovator.com.sa:8015";
       const langCode = language === "ar" || language === 2 ? 2 : 1;
-      const response = await axios.get(`${hostUrl}/api/Dashboard`, {
-        params: {
-          UserID: resolvedUserId,
-          UserId: resolvedUserId,
-          Recstatus: true,
-          language: langCode,
-        },
-      });
+
+      const [response, collectorsResponse] = await Promise.all([
+        axios.get(`${hostUrl}/api/Dashboard`, {
+          params: {
+            UserID: targetUserId,
+            UserId: targetUserId,
+            Recstatus: true,
+            language: langCode,
+          },
+        }),
+        axios
+          .get(`${hostUrl}/api/CollectorsDashboard`, {
+            params: {
+              UserID: targetUserId,
+              UserId: targetUserId,
+              Recstatus: true,
+              language: langCode,
+            },
+          })
+          .catch((err) => {
+            console.error("CollectorsDashboard fetch error:", err);
+            return { data: null };
+          }),
+      ]);
 
       const rawPayload = response.data;
       let resData = rawPayload?.data || rawPayload;
@@ -176,26 +202,28 @@ export default function Page() {
         escalatedList.length +
         pendingList.length
       );
+
+      const rawCollectors = collectorsResponse?.data;
+      const resolvedCollectors = rawCollectors?.data || rawCollectors || {};
+      setCollectorsData(resolvedCollectors);
     } catch (err) {
       console.error("Dashboard data fetch error:", err);
       toast.error("Failed to load dashboard data");
     } finally {
       setDashboardLoading(false);
     }
-  }, [user, language]);
+  }, [activeUserId, language]);
 
   useEffect(() => {
-    fetchDashboardData();
-  }, [fetchDashboardData]);
+    // Only fetch once when auth is resolved and activeUserId is available
+    if (loading || !activeUserId) return;
 
-  // Auto-refresh when tab is focused
-  useEffect(() => {
-    const handleFocus = () => {
-      fetchDashboardData();
-    };
-    window.addEventListener("focus", handleFocus);
-    return () => window.removeEventListener("focus", handleFocus);
-  }, [fetchDashboardData]);
+    const fetchKey = `${activeUserId}-${language}`;
+    if (lastFetchedKeyRef.current === fetchKey) return;
+    lastFetchedKeyRef.current = fetchKey;
+
+    fetchDashboardData(activeUserId);
+  }, [loading, activeUserId, language, fetchDashboardData]);
 
   if (loading) return <div className="flex h-screen items-center justify-center"><div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div></div>;
 
@@ -221,7 +249,7 @@ export default function Page() {
           variant="outline"
           size="sm"
           disabled={dashboardLoading}
-          onClick={fetchDashboardData}
+          onClick={() => fetchDashboardData(activeUserId)}
           className="h-10 px-4 rounded-xl border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all flex items-center gap-2 cursor-pointer text-xs shadow-xs"
         >
           <RefreshCw className={`w-4 h-4 ${dashboardLoading ? "animate-spin" : ""}`} />
@@ -251,9 +279,17 @@ export default function Page() {
         />
         <TargetAchievement
           title="Target General"
-          allocated={followUpCount || 20}
-          achieved={followUp.COMPLETE_FOLLOWUP?.length || 0}
-          data={followUp}
+          allocated={
+            collectorsData?.COLLECTIONACHEIVEMENT?.[0]?.ALLOCATEDTARGET ||
+            followUpCount ||
+            20
+          }
+          achieved={
+            collectorsData?.COLLECTIONACHEIVEMENT?.[0]?.ACHEIVEDTARGET ||
+            followUp.COMPLETE_FOLLOWUP?.length ||
+            0
+          }
+          data={collectorsData?.COLLECTIONACHEIVEMENT || collectorsData}
         />
       </div>
 
@@ -269,7 +305,10 @@ export default function Page() {
             />
           </div>
           <div className="xl:col-span-3">
-            <BarChartComponent title="Customer Distribution By Group" data={followUp} />
+            <BarChartComponent
+              title="Customer Distribution By Group"
+              data={collectorsData?.CUSTOMERSBYGROUP || collectorsData}
+            />
           </div>
         </div>
 
@@ -284,7 +323,10 @@ export default function Page() {
             />
           </div>
           <div className="xl:col-span-3">
-            <HorizontalBarChartComponent title="Collection Performance" data={followUp} />
+            <HorizontalBarChartComponent
+              title="Collection Performance"
+              data={collectorsData?.COLLECTIONPERFORMANCE || collectorsData}
+            />
           </div>
         </div>
 
@@ -299,7 +341,10 @@ export default function Page() {
             />
           </div>
           <div className="xl:col-span-3">
-            <FollowupStatusChart title="Follow-up Status Distribution" data={followUp} />
+            <FollowupStatusChart
+              title="Follow-up Status Distribution"
+              data={collectorsData?.CUSTOMERBYFOLLOWUPSTATUS || collectorsData}
+            />
           </div>
         </div>
       </div>

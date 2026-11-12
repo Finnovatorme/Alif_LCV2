@@ -53,6 +53,7 @@ interface ActionsProps {
   customerDetails?: Record<string, any>;
   followupDetails?: Record<string, any>;
   loanContracts?: any[];
+  skipInitialContractsFetch?: boolean;
 }
 
 interface TemplateItem {
@@ -74,6 +75,7 @@ export const Actions: React.FC<ActionsProps> = ({
   customerDetails,
   followupDetails,
   loanContracts: initialLoanContracts,
+  skipInitialContractsFetch = false,
 }) => {
   const router = useRouter();
   const dispatch = useDispatch();
@@ -183,7 +185,7 @@ export const Actions: React.FC<ActionsProps> = ({
 
   // Proactively fetch loan data contracts if not available yet and activeCifId exists
   useEffect(() => {
-    if (!activeCifId || loanContracts.length > 0) return;
+    if (skipInitialContractsFetch || !activeCifId || loanContracts.length > 0) return;
 
     const fetchLoanData = async () => {
       try {
@@ -200,7 +202,7 @@ export const Actions: React.FC<ActionsProps> = ({
     };
 
     fetchLoanData();
-  }, [activeCifId, loanContracts.length, language]);
+  }, [skipInitialContractsFetch, activeCifId, loanContracts.length, language]);
 
   const handleSmartViewClick = () => {
     const targetCif = activeCifId || 1;
@@ -237,14 +239,14 @@ export const Actions: React.FC<ActionsProps> = ({
   const [notifTypeOptions, setNotifTypeOptions] = useState<Option[]>([]);
   const allNotificationsCache = useRef<AllNotificationItem[]>([]);
 
-  // Customer contact info
+  // Customer contact info (strictly from API/store, no static dummy fallbacks)
   const customerFullName =
     customerDetails?.CUSTOMERNAME ||
     customerDetails?.FULLNAME ||
     customerDetails?.CUSTOMERFULLNAME ||
     smartView?.CUSTOMERNAME ||
     smartView?.CUSTOMERFULLNAME ||
-    "ALZAHRANI FATIMAH AHMED";
+    "—";
 
   const customerContactNumber =
     customerDetails?.MOBILENUMBER ||
@@ -252,21 +254,16 @@ export const Actions: React.FC<ActionsProps> = ({
     customerDetails?.CONTACTNUMBER ||
     smartView?.MOBILENUMBER ||
     smartView?.PRIMARYCONTACT ||
-    "0531646712";
+    "—";
 
   const customerEmail =
     customerDetails?.EMAIL ||
     customerDetails?.Email ||
     smartView?.EMAIL ||
-    "customer@example.com";
+    "";
 
-  // Dummy Call History matching layout
-  const dummyCallHistory = [
-    { id: 1, duration: "03m 42s", date: "8/3/2026", time: "03:56 PM", status: "Completed" },
-    { id: 2, duration: "03m 42s", date: "8/3/2026", time: "03:56 PM", status: "Completed" },
-    { id: 3, duration: "03m 42s", date: "8/3/2026", time: "03:56 PM", status: "Completed" },
-    { id: 4, duration: "03m 42s", date: "8/3/2026", time: "", status: "" },
-  ];
+  // Call history (only populated from API when available)
+  const callHistory: { id: number; duration: string; date: string; time: string; status: string }[] = [];
 
   // Helper to interpolate placeholder tags in templates
   const interpolateTemplate = useCallback(
@@ -287,7 +284,7 @@ export const Actions: React.FC<ActionsProps> = ({
 
   // Helper to format date & time for history cards
   const formatDateTime = (dateStr?: string) => {
-    if (!dateStr) return { date: "03/12/2024", time: "09:28 AM" };
+    if (!dateStr) return { date: "—", time: "" };
     try {
       const d = new Date(dateStr);
       if (isNaN(d.getTime())) return { date: formatDateKSA(dateStr) || dateStr, time: "" };
@@ -370,8 +367,12 @@ export const Actions: React.FC<ActionsProps> = ({
     },
   };
 
-  // Load NOTIFICATIONTYPE VB options
+  const fetchedNotifLangRef = useRef<number | null>(null);
+
+  // Load NOTIFICATIONTYPE VB options once per language
   useEffect(() => {
+    if (fetchedNotifLangRef.current === Number(language)) return;
+    fetchedNotifLangRef.current = Number(language);
     const fetchOptions = async () => {
       try {
         const opts = await vbValue("NOTIFICATIONTYPE", String(language));
@@ -379,6 +380,7 @@ export const Actions: React.FC<ActionsProps> = ({
           setNotifTypeOptions(opts);
         }
       } catch (err) {
+        fetchedNotifLangRef.current = null;
         console.error("Error fetching NOTIFICATIONTYPE vb options:", err);
       }
     };
@@ -567,13 +569,7 @@ export const Actions: React.FC<ActionsProps> = ({
           );
           setHistoryList(formattedHistory);
         } else {
-          const defaultHistory: FormattedHistoryItem[] = [
-            { id: 1, title: type === "sms" ? "Regular Sms" : type === "whatsapp" ? "Regular WhatsApp" : "Regular Email", date: "03/12/2024", time: "09:28 AM", status: "Sent" },
-            { id: 2, title: type === "sms" ? "Default Sms" : type === "whatsapp" ? "Default WhatsApp" : "Default Email", date: "03/12/2024", time: "09:27 AM", status: "Sent" },
-            { id: 3, title: "Legal Notice", date: "03/12/2024", time: "09:26 AM", status: "Sent" },
-            { id: 4, title: "Legal Notice", date: "25/11/2024", time: "06:07 AM", status: "Sent" },
-          ];
-          setHistoryList(defaultHistory);
+          setHistoryList([]);
         }
       } catch (err) {
         console.error("Error loading communication modal data:", err);
@@ -828,24 +824,30 @@ export const Actions: React.FC<ActionsProps> = ({
                 </h3>
 
                 <div className="flex flex-col gap-2.5 max-h-[320px] overflow-y-auto pr-1">
-                  {dummyCallHistory.map((item) => (
-                    <div
-                      key={item.id}
-                      className="bg-white dark:bg-gray-800 rounded-xl p-3.5 border border-gray-200/80 dark:border-gray-700/80 shadow-2xs flex flex-col gap-1 text-xs"
-                    >
-                      <div className="flex items-center justify-between font-bold text-gray-800 dark:text-gray-200">
-                        <span>Call Duration: {item.duration}</span>
-                        <span className="text-gray-500 dark:text-gray-400 font-normal text-[11px]">
-                          {item.date} {item.time}
-                        </span>
-                      </div>
-                      {item.status && (
-                        <div className="text-gray-600 dark:text-gray-400 text-[11px]">
-                          Status: <span className="font-semibold">{item.status}</span>
-                        </div>
-                      )}
+                  {callHistory.length === 0 ? (
+                    <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200/80 dark:border-gray-700/80 text-xs text-gray-500 dark:text-gray-400 text-center">
+                      No call history available.
                     </div>
-                  ))}
+                  ) : (
+                    callHistory.map((item) => (
+                      <div
+                        key={item.id}
+                        className="bg-white dark:bg-gray-800 rounded-xl p-3.5 border border-gray-200/80 dark:border-gray-700/80 shadow-2xs flex flex-col gap-1 text-xs"
+                      >
+                        <div className="flex items-center justify-between font-bold text-gray-800 dark:text-gray-200">
+                          <span>Call Duration: {item.duration}</span>
+                          <span className="text-gray-500 dark:text-gray-400 font-normal text-[11px]">
+                            {item.date} {item.time}
+                          </span>
+                        </div>
+                        {item.status && (
+                          <div className="text-gray-600 dark:text-gray-400 text-[11px]">
+                            Status: <span className="font-semibold">{item.status}</span>
+                          </div>
+                        )}
+                      </div>
+                    ))
+                  )}
                 </div>
               </div>
             </div>

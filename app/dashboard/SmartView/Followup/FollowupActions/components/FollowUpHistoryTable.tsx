@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import { History, MessageSquareText } from "lucide-react";
 import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 import { ReusableDataTable } from "@/components/FormComponent/DataGrid";
@@ -53,8 +53,18 @@ export const FollowUpHistoryTable: React.FC<FollowUpHistoryTableProps> = ({
     }
   }, [cifId, language]);
 
+  const fetchedVbLangRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (Array.isArray(initialData)) {
+      setHistoryList(initialData);
+    }
+  }, [initialData]);
+
   const fetchVbOptions = useCallback(async () => {
     const langStr = String(language);
+    if (fetchedVbLangRef.current === langStr) return;
+    fetchedVbLangRef.current = langStr;
     try {
       const [resultRes, subResultRes, nextActionRes] = await Promise.all([
         vbValue("COLLFOLLOWUPRESULT", langStr),
@@ -68,12 +78,15 @@ export const FollowUpHistoryTable: React.FC<FollowUpHistoryTableProps> = ({
         COLLFOLLOWUPNEXTACTION: Array.isArray(nextActionRes) ? nextActionRes : [],
       });
     } catch (err) {
+      fetchedVbLangRef.current = null;
       console.error("Error fetching VB options:", err);
     }
   }, [language]);
 
   useEffect(() => {
-    fetchHistory();
+    if (initialData === undefined) {
+      fetchHistory();
+    }
     fetchVbOptions();
 
     const handleFollowUpAdded = () => {
@@ -89,7 +102,7 @@ export const FollowUpHistoryTable: React.FC<FollowUpHistoryTableProps> = ({
         window.removeEventListener("followup-added", handleFollowUpAdded);
       }
     };
-  }, [fetchHistory, fetchVbOptions]);
+  }, [initialData === undefined, fetchHistory, fetchVbOptions]);
 
   const getRowValue = (row: any, keys: string[]) => {
     for (const k of keys) {

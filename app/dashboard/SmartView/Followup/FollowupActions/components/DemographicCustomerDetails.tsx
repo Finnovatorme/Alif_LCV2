@@ -27,46 +27,46 @@ export const DemographicCustomerDetails: React.FC<DemographicCustomerDetailsProp
     return formatDateKSA(val) || "—";
   };
 
-  // Primary Customer Identification
+  // Primary Customer Identification (strictly API values, no static fallbacks)
   const customerName = getValue(
     ["CUSTOMERNAME", "CustomerName", "CUSTOMERFULLNAME", "FULLNAME"],
-    "ALZAHRANI FATIMAH AHMED"
+    "—"
   );
-  const cifId = getValue(["CIFID", "CifId", "cifId"], "1");
-  const customerType = getValue(["CUSTOMERTYPE", "CustomerType"], "Individual");
-  const customerCategory = getValue(["CUSTOMERCATEGORY", "CustomerCategory"], "Low Risk");
+  const cifId = getValue(["CIFID", "CifId", "cifId"], "—");
+  const customerType = getValue(["CUSTOMERTYPE", "CustomerType"], "—");
+  const customerCategory = getValue(["CUSTOMERCATEGORY", "CustomerCategory"], "—");
 
   // Personal Details
   const dobHijri = formatDateWithoutTime(
-    getValue(["DOB_H", "DATEOFBIRTH_H", "DOB_H_DESC", "DATEOFBIRTH", "DOB_G"], "01/23/1980")
+    getValue(["DOB_H", "DATEOFBIRTH_H", "DOB_H_DESC", "DATEOFBIRTH", "DOB_G"], "—")
   );
-  const age = getValue(["AGE_H", "AGE_G", "AGE_HIJRI", "AgeHijri", "AGE"], "46");
-  const gender = getValue(["GENDER", "Gender"], "Male");
-  const nationality = getValue(["NATIONALITY", "Nationality"], "Saudi Arabia");
-  const maritalStatus = getValue(["MARITALSTATUS", "MaritalStatus"], "Married");
+  const age = getValue(["AGE_H", "AGE_G", "AGE_HIJRI", "AgeHijri", "AGE"], "—");
+  const gender = getValue(["GENDER", "Gender"], "—");
+  const nationality = getValue(["NATIONALITY", "Nationality"], "—");
+  const maritalStatus = getValue(["MARITALSTATUS", "MaritalStatus"], "—");
   const qualification = getValue(
     ["QUALIFICATIONTYPE", "QUALIFICATION", "QualificationType", "Qualification"],
-    "Bachelor Degree"
+    "—"
   );
   const dependents = getValue(
     ["NOOFDEPENDENTS", "NUMBEROFDEPENDENTS", "NoOfDependents", "NumberOfDependents"],
-    "0"
+    "—"
   );
 
   // Contact & Residence
   const idNumber = getValue(["IDNUMBER", "IdNumber"], "—");
   const contactNumber = getValue(
     ["CONTACTNUMBER", "MOBILENUMBER", "MobileNumber", "MOBILE", "ContactNumber"],
-    "0531646712"
+    "—"
   );
   const email = getValue(["EMAIL", "Email"], "—");
   const residentialStatus = getValue(
     ["RESIDENTIALSTATUS", "ResidentialStatus"],
-    "Own House"
+    "—"
   );
   const residenceType = getValue(
     ["RESIDENCETYPE", "ResidenceType"],
-    "Apartment"
+    "—"
   );
 
   return (

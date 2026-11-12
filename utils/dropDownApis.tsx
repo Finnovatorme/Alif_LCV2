@@ -11,28 +11,40 @@ type VbItem = {
   VALDESC1: string;
 };
 
+const vbCache = new Map<string, Promise<Option[]>>();
+
 export const vbValue = async (
   category: string | number,
   language?: string,
 ): Promise<Option[]> => {
-  try {
-    const response = await axios.get(
-      `${process.env.BS_API_KEY}/api/CnfgVbValues/GetCnfgVbValues/${category}`,
-      { params: { language } }
-    );
+  const key = `${category}::${language ?? ""}`;
+  const cached = vbCache.get(key);
+  if (cached) return cached;
 
-    const data = response.data as VbItem[];
+  const promise = (async () => {
+    try {
+      const response = await axios.get(
+        `${process.env.BS_API_KEY}/api/CnfgVbValues/GetCnfgVbValues/${category}`,
+        { params: { language } }
+      );
 
-    const options: Option[] = data.map((item) => ({
-      value: item.RECID,
-      label: item.VALDESC1,
-    }));
+      const data = response.data as VbItem[];
 
-    return options;
-  } catch (error) {
-    console.error(`Error fetching ${category} options:`, error);
-    return [];
-  }
+      const options: Option[] = data.map((item) => ({
+        value: item.RECID,
+        label: item.VALDESC1,
+      }));
+
+      return options;
+    } catch (error) {
+      vbCache.delete(key);
+      console.error(`Error fetching ${category} options:`, error);
+      return [];
+    }
+  })();
+
+  vbCache.set(key, promise);
+  return promise;
 };
 
 type FinancierItem = {

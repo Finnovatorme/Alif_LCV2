@@ -101,7 +101,7 @@ export const getTargetGroups = async (params: {
       {
         params: {
           ...queryParams,
-          _t: Date.now(),
+          // _t: Date.now(),
         },
         headers: {
           "Cache-Control": "no-cache, no-store, must-revalidate",

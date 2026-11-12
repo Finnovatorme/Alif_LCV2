@@ -9,17 +9,42 @@ interface FinancialCustomerDetailsProps {
 }
 
 export const FinancialCustomerDetails: React.FC<FinancialCustomerDetailsProps> = ({ data }) => {
-  const getValue = (keys: string[], fallback: any = "0") => {
-    for (const k of keys) {
-      if (data[k] !== undefined && data[k] !== null && data[k] !== "") {
-        return data[k];
-      }
-      const upper = k.toUpperCase();
-      if (data[upper] !== undefined && data[upper] !== null && data[upper] !== "") {
-        return data[upper];
+  const normalizedData = React.useMemo(() => {
+    const map: Record<string, any> = {};
+    if (!data || typeof data !== "object") return map;
+    for (const [key, val] of Object.entries(data)) {
+      if (val !== undefined && val !== null && val !== "") {
+        map[key] = val;
+        const upperKey = key.toUpperCase();
+        if (map[upperKey] === undefined) {
+          map[upperKey] = val;
+        }
       }
     }
-    return fallback;
+    return map;
+  }, [data]);
+
+  const getValue = (keys: string[]): any => {
+    for (const k of keys) {
+      if (normalizedData[k] !== undefined) {
+        return normalizedData[k];
+      }
+      const upper = k.toUpperCase();
+      if (normalizedData[upper] !== undefined) {
+        return normalizedData[upper];
+      }
+    }
+    return null;
+  };
+
+  const formatAmountOrDash = (val: any) => {
+    if (val === null || val === undefined || val === "" || val === "—") return "—";
+    return formatAmountKSA(val);
+  };
+
+  const formatTextOrDash = (val: any) => {
+    if (val === null || val === undefined || val === "" || val === "—") return "—";
+    return String(val);
   };
 
   const formatDateWithoutTime = (val: any) => {
@@ -27,40 +52,63 @@ export const FinancialCustomerDetails: React.FC<FinancialCustomerDetailsProps> =
     return formatDateKSA(val) || "—";
   };
 
-  // Group 1: Financing & Repayment
-  const dpd = getValue(["DPD", "dpd"], "2");
+  // Group 1: Financing & Repayment (strictly API values, no static fallbacks)
+  const dpd = formatTextOrDash(getValue(["DPD", "dpd"]));
   const lastInstallmentDate = formatDateWithoutTime(
-    getValue(["LASTINSTALLMENTDATE", "LastInstallmentDate"], "01/12/2022")
+    getValue(["LASTINSTALLMENTDATE", "LastInstallmentDate"])
   );
-  const loanAmount = formatAmountKSA(getValue(["LOANAMOUNT", "LoanAmount"], "157481"));
-  const totalLoanAmount = formatAmountKSA(getValue(["TOTALLOANAMOUNT", "TotalLoanAmount"], "302089"));
-  const installmentAmount = formatAmountKSA(getValue(["INSTALLMENTAMOUNT", "InstallmentAmount"], "1305"));
+  const loanAmount = formatAmountOrDash(getValue(["LOANAMOUNT", "LoanAmount"]));
+  const totalLoanAmount = formatAmountOrDash(getValue(["TOTALLOANAMOUNT", "TotalLoanAmount"]));
+  const installmentAmount = formatAmountOrDash(getValue(["INSTALLMENTAMOUNT", "InstallmentAmount"]));
 
-  // Group 2: Outstanding & Overdue
-  const principalOverdue = formatAmountKSA(getValue(["PRINCIPALOVERDUE", "PrincipalOverdue"], "892.89"));
-  const profitOverdue = formatAmountKSA(getValue(["PROFITOVERDUE", "ProfitOverdue"], "0"));
-  const insuranceOverdue = formatAmountKSA(getValue(["INSURANCEOVERDUE", "InsuranceOverdue"], "0"));
-  const amortizedChargeOverdue = formatAmountKSA(getValue(["AMORTIZEDCHARGEOVERDUE", "AmortizedChargeOverdue"], "0"));
-  const upfrontChargeOverdue = formatAmountKSA(getValue(["UPFRONTCHARGEOVERDUE", "UpfrontChargeOverdue"], "0"));
-  const otherChargeOverdue = formatAmountKSA(getValue(["OTHERCHARGEOVERDUE", "OtherChargeOverdue"], "0"));
+  // Group 2: Outstanding & Overdue (strictly API values, no static fallbacks)
+  const rawPrincipalOverdue = getValue(["PRINCIPALOVERDUE", "PrincipalOverdue"]);
+  const principalOverdue = formatAmountOrDash(rawPrincipalOverdue);
+  const hasPrincipalOverdue =
+    rawPrincipalOverdue !== null && Number(rawPrincipalOverdue) > 0;
+  const profitOverdue = formatAmountOrDash(getValue(["PROFITOVERDUE", "ProfitOverdue"]));
+  const insuranceOverdue = formatAmountOrDash(getValue(["INSURANCEOVERDUE", "InsuranceOverdue"]));
+  const amortizedChargeOverdue = formatAmountOrDash(
+    getValue(["AMORTIZEDCHARGEOVERDUE", "AmortizedChargeOverdue"])
+  );
+  const upfrontChargeOverdue = formatAmountOrDash(
+    getValue(["UPFRONTCHARGEOVERDUE", "UpfrontChargeOverdue"])
+  );
+  const otherChargeOverdue = formatAmountOrDash(
+    getValue(["OTHERCHARGEOVERDUE", "OtherChargeOverdue"])
+  );
 
-  // Group 3: Payment Summary
-  const totalLoanReceivableOS = formatAmountKSA(getValue(["TOTALLOANRECEIVABLEOS", "TotalLoanReceivableOs"], "-1632.88"));
-  const totalChargeReceivableOS = formatAmountKSA(getValue(["TOTALCHARGERECEIVABLEOS", "TotalChargeReceivableOs"], "-1632.88"));
-  const principalPaid = formatAmountKSA(getValue(["PRINCIPALPAID", "PrincipalPaid"], "-1632.68"));
-  const profitPaid = formatAmountKSA(getValue(["PROFITPAID", "ProfitPaid"], "0"));
-  const insurancePaid = formatAmountKSA(getValue(["INSURANCEPAID", "InsurancePaid"], "0"));
-  const chargePaid = formatAmountKSA(getValue(["CAPITALIZEDCHARGEPAID", "CapitalizedChargePaid"], "0"));
+  // Group 3: Payment Summary (strictly API values, no static fallbacks)
+  const totalLoanReceivableOS = formatAmountOrDash(
+    getValue(["TOTALLOANRECEIVABLEOS", "TotalLoanReceivableOs"])
+  );
+  const totalChargeReceivableOS = formatAmountOrDash(
+    getValue(["TOTALCHARGERECEIVABLEOS", "TotalChargeReceivableOs"])
+  );
+  const principalPaid = formatAmountOrDash(getValue(["PRINCIPALPAID", "PrincipalPaid"]));
+  const profitPaid = formatAmountOrDash(getValue(["PROFITPAID", "ProfitPaid"]));
+  const insurancePaid = formatAmountOrDash(getValue(["INSURANCEPAID", "InsurancePaid"]));
+  const chargePaid = formatAmountOrDash(
+    getValue(["CAPITALIZEDCHARGEPAID", "CapitalizedChargePaid", "CHARGEPAID", "ChargePaid"])
+  );
 
-  // Group 4: Loan Components
-  const profitAmount = formatAmountKSA(getValue(["PROFITAMOUNT", "ProfitAmount"], "144608"));
-  const insuranceAmount = formatAmountKSA(getValue(["INSURANCEAMOUNT", "InsuranceAmount"], "0"));
-  const amortizedChargeAmount = formatAmountKSA(getValue(["AMORTIZEDCHARGEAMOUNT", "AmortizedChargeAmount"], "0"));
-  const capitalizedChargeAmount = formatAmountKSA(getValue(["CAPITALIZEDCHARGEAMOUNT", "CapitalizedChargeAmount"], "0"));
-  const taxAmount = formatAmountKSA(getValue(["TAXAMOUNT", "TaxAmount"], "0"));
-  const otherChargeAmount = formatAmountKSA(getValue(["OTHERCHARGEAMOUNT", "OtherChargeAmount"], "0"));
-  const residualAmount = formatAmountKSA(getValue(["RESIDUALAMOUNT", "ResidualAmount"], "0"));
-  const upfrontChargeAmount = formatAmountKSA(getValue(["UPFRONTCHARGEAMOUNT", "UpfrontChargeAmount"], "0"));
+  // Group 4: Loan Components (strictly API values, no static fallbacks)
+  const profitAmount = formatAmountOrDash(getValue(["PROFITAMOUNT", "ProfitAmount"]));
+  const insuranceAmount = formatAmountOrDash(getValue(["INSURANCEAMOUNT", "InsuranceAmount"]));
+  const amortizedChargeAmount = formatAmountOrDash(
+    getValue(["AMORTIZEDCHARGEAMOUNT", "AmortizedChargeAmount"])
+  );
+  const capitalizedChargeAmount = formatAmountOrDash(
+    getValue(["CAPITALIZEDCHARGEAMOUNT", "CapitalizedChargeAmount"])
+  );
+  const taxAmount = formatAmountOrDash(getValue(["TAXAMOUNT", "TaxAmount"]));
+  const otherChargeAmount = formatAmountOrDash(
+    getValue(["OTHERCHARGEAMOUNT", "OtherChargeAmount"])
+  );
+  const residualAmount = formatAmountOrDash(getValue(["RESIDUALAMOUNT", "ResidualAmount"]));
+  const upfrontChargeAmount = formatAmountOrDash(
+    getValue(["UPFRONTCHARGEAMOUNT", "UpfrontChargeAmount"])
+  );
 
   return (
     <div className="xl:col-span-8 flex flex-col gap-5">
@@ -115,10 +163,29 @@ export const FinancialCustomerDetails: React.FC<FinancialCustomerDetailsProps> =
             <span className="tracking-wide">Outstanding & Overdue</span>
           </div>
           <div className="p-4 sm:p-5 grid grid-cols-2 sm:grid-cols-3 gap-3">
-            {/* Principal Overdue with prominent styling */}
-            <div className="p-3 rounded-xl bg-red-50/70 dark:bg-red-950/40 border border-red-200 dark:border-red-900/60 flex flex-col">
-              <span className="text-[11px] font-bold text-red-600 dark:text-red-400">Principal Overdue</span>
-              <span className="text-base font-extrabold text-red-700 dark:text-red-300 font-mono mt-1">
+            <div
+              className={`p-3 rounded-xl border flex flex-col ${
+                hasPrincipalOverdue
+                  ? "bg-red-50/70 dark:bg-red-950/40 border-red-200 dark:border-red-900/60"
+                  : "bg-gray-50/70 dark:bg-gray-800/50 border-gray-100 dark:border-gray-800"
+              }`}
+            >
+              <span
+                className={`text-[11px] font-bold ${
+                  hasPrincipalOverdue
+                    ? "text-red-600 dark:text-red-400"
+                    : "text-gray-500 dark:text-gray-400 font-medium"
+                }`}
+              >
+                Principal Overdue
+              </span>
+              <span
+                className={`text-base font-extrabold font-mono mt-1 ${
+                  hasPrincipalOverdue
+                    ? "text-red-700 dark:text-red-300"
+                    : "text-gray-900 dark:text-white font-bold"
+                }`}
+              >
                 {principalOverdue}
               </span>
             </div>

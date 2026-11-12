@@ -6,6 +6,7 @@ import {
   Frame,
   Settings2,
   SquareTerminal,
+  Clock,
 } from "lucide-react";
 import { NavMain } from "@/components/layout/nav-main";
 import { NavUser } from "@/components/layout/nav-user";
@@ -44,6 +45,25 @@ const data = {
         { title: "Allocations", url: "/dashboard/admin/AllocationScreen", icon: Frame },
         { title: "Message Campaign", url: "/dashboard/admin/MessageCampaign", icon: Frame },
 
+      ],
+    },
+    {
+      title: "Follow Up",
+      url: "#",
+      icon: Clock,
+      items: [
+        {
+          title: "Pending",
+          url: "/dashboard/FollowUp/Pending",
+        },
+        {
+          title: "Completed",
+          url: "/dashboard/FollowUp/Completed",
+        },
+        {
+          title: "Escalated",
+          url: "/dashboard/FollowUp/Escalated",
+        },
       ],
     },
     {
