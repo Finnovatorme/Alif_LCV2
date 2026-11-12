@@ -166,7 +166,11 @@ const page = () => {
     }
   };
 
+  const hasFetchedData = useRef(false);
+
   useEffect(() => {
+    if (hasFetchedData.current) return;
+    hasFetchedData.current = true;
     fetchData();
   }, []);
 
@@ -178,28 +182,17 @@ const page = () => {
   }, [targetDataState]);
 
   const getLcAllocationOptions = async () => {
-    setLoading(true);
     const vbTypeOptions = await fetchLCAllocationGroupOptions();
     const vbToAdd = { LCALLOCATIONGROUPS: vbTypeOptions };
     dispatch(ddOptions(vbToAdd));
-    setLoading(false);
   };
 
   useEffect(() => {
-    dispatch(ddOptions({}));
-    hasFetched.current = false;
-  }, []);
-
-  useEffect(() => {
     if (hasFetched.current) return;
-    const categories = ["LCALLOCATIONGROUPS"];
-    categories.forEach((cat) => {
-      if (!ddValues?.LCALLOCATIONGROUPS) {
-        getLcAllocationOptions();
-      }
-    });
-
     hasFetched.current = true;
+    if (!ddValues?.LCALLOCATIONGROUPS) {
+      getLcAllocationOptions();
+    }
   }, [ddValues]);
 
   const deleteData = async (delData: any) => {

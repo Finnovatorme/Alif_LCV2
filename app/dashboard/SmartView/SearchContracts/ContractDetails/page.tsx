@@ -16,7 +16,6 @@ import {
   FileText,
   Wallet,
   CreditCard,
-  History,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -30,7 +29,6 @@ import IncomeDetails from "./components/IncomeDetails";
 import LiabilitiesDetails from "./components/LiabilitiesDetails";
 import BankDetails from "./components/BankDetails";
 import AssetDetails from "./components/AssetDetails";
-import AuditTrail from "./components/AuditTrail";
 import ContractDashboard from "./components/ContractDashboard";
 
 export default function ContractDetailsPage() {
@@ -67,9 +65,7 @@ export default function ContractDetailsPage() {
       id: "contracts",
       label: "Contract List",
       icon: FileText,
-      component: ({ cifId }: { cifId: string }) => (
-        <ContractList cifId={cifId} onSelectLoan={setSelectedLoan} />
-      ),
+      component: ContractList,
     },
     {
       id: "summary",
@@ -124,9 +120,9 @@ export default function ContractDetailsPage() {
   if (selectedLoan) {
     return (
       <div className="space-y-4">
-        <ContractDashboard 
-          loanData={selectedLoan} 
-          onBack={() => setSelectedLoan(null)} 
+        <ContractDashboard
+          loanData={selectedLoan}
+          onBack={() => setSelectedLoan(null)}
         />
       </div>
     );
@@ -197,15 +193,22 @@ export default function ContractDetailsPage() {
         </div>
 
         <div>
-          {tabs.map((tab) => (
-            <TabsContent
-              key={tab.id}
-              value={tab.id}
-              className="outline-none"
-            >
-              <tab.component cifId={String(cifId)} />
-            </TabsContent>
-          ))}
+          {tabs.map((tab) => {
+            const TabComponent = tab.component as React.ComponentType<{ cifId: string }>;
+            return (
+              <TabsContent
+                key={tab.id}
+                value={tab.id}
+                className="outline-none"
+              >
+                {tab.id === "contracts" ? (
+                  <ContractList cifId={String(cifId)} onSelectLoan={setSelectedLoan} />
+                ) : (
+                  <TabComponent cifId={String(cifId)} />
+                )}
+              </TabsContent>
+            );
+          })}
         </div>
       </Tabs>
     </div>
