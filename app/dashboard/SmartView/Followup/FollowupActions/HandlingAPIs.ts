@@ -298,6 +298,39 @@ export const getCustomerContractsList = async (params: {
   }
 };
 
+/**
+ * 9. Fetch detailed financial breakdown for a specific customer contract
+ * Endpoint: GET /api/Customer/get-CustomerContractDetails
+ */
+export const getCustomerContractDetails = async (params: {
+  LOANID: number | string;
+  CIFID: number | string;
+  language?: number | string;
+}) => {
+  try {
+    const hostUrl = process.env.HOST_API_KEY || "https://demo.finnovator.com.sa:8015";
+    const response = await axios.get(
+      `${hostUrl}/api/Customer/get-CustomerContractDetails`,
+      { params }
+    );
+    const raw = response.data;
+    const nested = raw?.data;
+    const detail =
+      raw?.ContractDetails?.[0] ||
+      raw?.ContractDetail?.[0] ||
+      nested?.ContractDetails?.[0] ||
+      nested?.ContractDetail?.[0] ||
+      (Array.isArray(nested) ? nested[0] : null) ||
+      (nested && typeof nested === "object" && !Array.isArray(nested) ? nested : null) ||
+      (Array.isArray(raw) ? raw[0] : null);
+
+    return detail && typeof detail === "object" ? detail : null;
+  } catch (error: any) {
+    console.error("Error fetching customer contract details:", error);
+    return null;
+  }
+};
+
 
 export interface EscalationUserItem {
   USERID: string;

@@ -32,6 +32,7 @@ export default function Page() {
     PENDING_FOLLOWUP: [],
   });
   const [followUpCount, setFollowUpCount] = useState(0);
+  const [collectorsData, setCollectorsData] = useState<Record<string, any>>({});
   const [dashboardLoading, setDashboardLoading] = useState(true);
 
   const handleViewDetailsPage = (row: any) => {
@@ -143,14 +144,30 @@ export default function Page() {
       const hostUrl =
         process.env.HOST_API_KEY || "https://demo.finnovator.com.sa:8015";
       const langCode = language === "ar" || language === 2 ? 2 : 1;
-      const response = await axios.get(`${hostUrl}/api/Dashboard`, {
-        params: {
-          UserID: targetUserId,
-          UserId: targetUserId,
-          Recstatus: true,
-          language: langCode,
-        },
-      });
+
+      const [response, collectorsResponse] = await Promise.all([
+        axios.get(`${hostUrl}/api/Dashboard`, {
+          params: {
+            UserID: targetUserId,
+            UserId: targetUserId,
+            Recstatus: true,
+            language: langCode,
+          },
+        }),
+        axios
+          .get(`${hostUrl}/api/CollectorsDashboard`, {
+            params: {
+              UserID: targetUserId,
+              UserId: targetUserId,
+              Recstatus: true,
+              language: langCode,
+            },
+          })
+          .catch((err) => {
+            console.error("CollectorsDashboard fetch error:", err);
+            return { data: null };
+          }),
+      ]);
 
       const rawPayload = response.data;
       let resData = rawPayload?.data || rawPayload;
@@ -185,6 +202,10 @@ export default function Page() {
         escalatedList.length +
         pendingList.length
       );
+
+      const rawCollectors = collectorsResponse?.data;
+      const resolvedCollectors = rawCollectors?.data || rawCollectors || {};
+      setCollectorsData(resolvedCollectors);
     } catch (err) {
       console.error("Dashboard data fetch error:", err);
       toast.error("Failed to load dashboard data");
@@ -258,9 +279,17 @@ export default function Page() {
         />
         <TargetAchievement
           title="Target General"
-          allocated={followUpCount || 20}
-          achieved={followUp.COMPLETE_FOLLOWUP?.length || 0}
-          data={followUp}
+          allocated={
+            collectorsData?.COLLECTIONACHEIVEMENT?.[0]?.ALLOCATEDTARGET ||
+            followUpCount ||
+            20
+          }
+          achieved={
+            collectorsData?.COLLECTIONACHEIVEMENT?.[0]?.ACHEIVEDTARGET ||
+            followUp.COMPLETE_FOLLOWUP?.length ||
+            0
+          }
+          data={collectorsData?.COLLECTIONACHEIVEMENT || collectorsData}
         />
       </div>
 
@@ -276,7 +305,10 @@ export default function Page() {
             />
           </div>
           <div className="xl:col-span-3">
-            <BarChartComponent title="Customer Distribution By Group" data={followUp} />
+            <BarChartComponent
+              title="Customer Distribution By Group"
+              data={collectorsData?.CUSTOMERSBYGROUP || collectorsData}
+            />
           </div>
         </div>
 
@@ -291,7 +323,10 @@ export default function Page() {
             />
           </div>
           <div className="xl:col-span-3">
-            <HorizontalBarChartComponent title="Collection Performance" data={followUp} />
+            <HorizontalBarChartComponent
+              title="Collection Performance"
+              data={collectorsData?.COLLECTIONPERFORMANCE || collectorsData}
+            />
           </div>
         </div>
 
@@ -306,7 +341,10 @@ export default function Page() {
             />
           </div>
           <div className="xl:col-span-3">
-            <FollowupStatusChart title="Follow-up Status Distribution" data={followUp} />
+            <FollowupStatusChart
+              title="Follow-up Status Distribution"
+              data={collectorsData?.CUSTOMERBYFOLLOWUPSTATUS || collectorsData}
+            />
           </div>
         </div>
       </div>

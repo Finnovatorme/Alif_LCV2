@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useSelector } from "react-redux";
 import axios from "@/utils/axios";
 import { dashboardParams, languageParams } from "@/lib/redux/slices/dashboardApplSlice";
@@ -21,6 +21,7 @@ import {
   getAllNotifications,
   getMessageHistory,
   getCustomerContractsList,
+  getCustomerContractDetails,
 } from "./HandlingAPIs";
 
 export {
@@ -32,6 +33,23 @@ export {
   getAllNotifications,
   getMessageHistory,
   getCustomerContractsList,
+  getCustomerContractDetails,
+};
+
+const mergeNonEmpty = (
+  ...sources: Array<Record<string, any> | null | undefined>
+): Record<string, any> => {
+  const result: Record<string, any> = {};
+  for (const src of sources) {
+    if (!src || typeof src !== "object") continue;
+    for (const [key, val] of Object.entries(src)) {
+      // Preserve 0 / false while skipping null, undefined, and empty strings
+      if (val !== undefined && val !== null && val !== "") {
+        result[key] = val;
+      }
+    }
+  }
+  return result;
 };
 
 export default function FollowupActionsPage() {
@@ -43,8 +61,11 @@ export default function FollowupActionsPage() {
   const [followupDetails, setFollowupDetails] = useState<Record<string, any>>({});
   const [historyList, setHistoryList] = useState<any[]>([]);
   const [loanContracts, setLoanContracts] = useState<any[]>([]);
+  const [contractDetails, setContractDetails] = useState<Record<string, any>>({});
   const [cifId, setCifId] = useState<number | string | null>(null);
+  const [selectedLoanId, setSelectedLoanId] = useState<number | string | null>(null);
   const [language, setLanguage] = useState<number>(1);
+  const lastFetchedKeyRef = useRef<string>("");
 
   useEffect(() => {
     let activeCifId: number | string | null = null;
@@ -77,16 +98,24 @@ export default function FollowupActionsPage() {
       }
     }
 
-    if (!activeCifId) {
-      activeCifId = 1;
-    }
-
     if (Object.keys(initialCust).length > 0) {
       setCustomerDetails((prev) => ({ ...initialCust, ...prev }));
     }
 
     setCifId(activeCifId);
     setLanguage(activeLang);
+    const paramLoanId =
+      initialCust?.LOANID ?? initialCust?.LoanId ?? initialCust?.APPID ?? null;
+    setSelectedLoanId(paramLoanId);
+
+    if (activeCifId === null || activeCifId === undefined || activeCifId === "") {
+      setLoading(false);
+      return;
+    }
+
+    const fetchKey = `${activeCifId}-${activeLang}`;
+    if (lastFetchedKeyRef.current === fetchKey) return;
+    lastFetchedKeyRef.current = fetchKey;
 
     const loadData = async () => {
       setLoading(true);
@@ -94,15 +123,9 @@ export default function FollowupActionsPage() {
         const queryParams = { CIFID: activeCifId ?? "", language: activeLang };
 
         const [custRes, folRes, contractsRes] = await Promise.all([
-          activeCifId !== null && activeCifId !== undefined
-            ? followupCustomerDetailsGet(queryParams)
-            : null,
-          activeCifId !== null && activeCifId !== undefined
-            ? followupDetailsGet(queryParams)
-            : null,
-          activeCifId !== null && activeCifId !== undefined
-            ? getCustomerContractsList(queryParams)
-            : [],
+          followupCustomerDetailsGet(queryParams),
+          followupDetailsGet(queryParams),
+          getCustomerContractsList(queryParams),
         ]);
 
         if (Array.isArray(custRes) && custRes.length > 0) {
@@ -121,10 +144,31 @@ export default function FollowupActionsPage() {
           setHistoryList(Array.isArray((folRes as any).data) ? (folRes as any).data : [folRes]);
         }
 
-        if (Array.isArray(contractsRes)) {
-          setLoanContracts(contractsRes);
-        } else if (contractsRes?.data && Array.isArray(contractsRes.data)) {
-          setLoanContracts(contractsRes.data);
+        const contractsList = Array.isArray(contractsRes)
+          ? contractsRes
+          : contractsRes?.data && Array.isArray(contractsRes.data)
+            ? contractsRes.data
+            : [];
+        setLoanContracts(contractsList);
+
+        const matchedContract =
+          contractsList.find(
+            (c: any) =>
+              paramLoanId !== null &&
+              (String(c?.LOANID) === String(paramLoanId) ||
+                String(c?.APPID) === String(paramLoanId))
+          ) || contractsList[0];
+
+        const targetLoanId = matchedContract?.LOANID ?? paramLoanId;
+        if (targetLoanId !== null && targetLoanId !== undefined && targetLoanId !== "") {
+          const detailRes = await getCustomerContractDetails({
+            LOANID: targetLoanId,
+            CIFID: activeCifId,
+            language: activeLang,
+          });
+          if (detailRes) {
+            setContractDetails(detailRes);
+          }
         }
       } catch (err) {
         console.error("Error loading followup action data:", err);
@@ -137,9 +181,26 @@ export default function FollowupActionsPage() {
     loadData();
   }, [reduxParams, selectedLanguage]);
 
-  const combinedData = { ...customerDetails, ...followupDetails };
+  const primaryContract =
+    loanContracts.find(
+      (c: any) =>
+        selectedLoanId !== null &&
+        (String(c?.LOANID) === String(selectedLoanId) ||
+          String(c?.APPID) === String(selectedLoanId))
+    ) ||
+    loanContracts[0] ||
+    null;
 
-  // Customer primary attributes matching Screenshot 2
+  const combinedData = mergeNonEmpty(
+    followupDetails,
+    customerDetails?.Summary?.[0],
+    customerDetails?.Customer?.[0],
+    customerDetails,
+    primaryContract,
+    contractDetails
+  );
+
+  // Customer primary attributes strictly from API/selection (no hardcoded fallbacks)
   const customerName =
     combinedData?.CUSTOMERNAME ||
     combinedData?.CustomerName ||
@@ -147,7 +208,7 @@ export default function FollowupActionsPage() {
     combinedData?.FULLNAME ||
     customerDetails?.CUSTOMERNAME ||
     customerDetails?.CustomerName ||
-    "ALZAHRANI FATIMAH AHMED";
+    "—";
 
   const displayCifId =
     combinedData?.CIFID ??
@@ -155,16 +216,23 @@ export default function FollowupActionsPage() {
     customerDetails?.CIFID ??
     customerDetails?.CifId ??
     cifId ??
-    "1";
+    "—";
 
   const customerType =
     combinedData?.CUSTOMERTYPE ||
     combinedData?.CustomerType ||
     customerDetails?.CUSTOMERTYPE ||
-    "Individual";
+    "—";
 
-  const dpdVal = Number(combinedData?.DPD ?? combinedData?.dpd ?? 2);
-  const isOverdue = dpdVal > 0 || Number(combinedData?.PRINCIPALOVERDUE ?? combinedData?.PrincipalOverdue ?? 892.89) > 0;
+  const dpdVal = Number(combinedData?.DPD ?? combinedData?.dpd ?? 0);
+  const isOverdue =
+    dpdVal > 0 ||
+    Number(
+      combinedData?.PRINCIPALOVERDUE ??
+        combinedData?.PrincipalOverdue ??
+        combinedData?.TOTALOVERDUEAMOUNT ??
+        0
+    ) > 0;
 
   return (
     <div className="flex flex-col gap-6 font-sans">
@@ -174,6 +242,7 @@ export default function FollowupActionsPage() {
         customerDetails={customerDetails}
         followupDetails={followupDetails}
         loanContracts={loanContracts}
+        skipInitialContractsFetch={true}
       />
 
       {/* Profile Header Banner with Top Gradient and Shadow */}
