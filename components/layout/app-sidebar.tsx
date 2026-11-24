@@ -7,6 +7,7 @@ import {
   Settings2,
   SquareTerminal,
   Clock,
+  Scale,
 } from "lucide-react";
 import { NavMain } from "@/components/layout/nav-main";
 import { NavUser } from "@/components/layout/nav-user";
@@ -44,7 +45,6 @@ const data = {
         { title: "Target", url: "/dashboard/admin/TargetScreen", icon: Frame },
         { title: "Allocations", url: "/dashboard/admin/AllocationScreen", icon: Frame },
         { title: "Message Campaign", url: "/dashboard/admin/MessageCampaign", icon: Frame },
-
       ],
     },
     {
@@ -64,6 +64,10 @@ const data = {
           title: "Escalated",
           url: "/dashboard/FollowUp/Escalated",
         },
+        {
+          title: "Comments",
+          url: "/dashboard/FollowUp/Comments",
+        },
       ],
     },
     {
@@ -75,12 +79,18 @@ const data = {
           title: "Search Contract",
           url: "/dashboard/SmartView/SearchContracts",
           icon: FilePlus,
-        }, {
+        },
+        {
           title: "Follow Up",
           url: "/dashboard/SmartView/Followup",
           icon: FilePlus,
         },
       ],
+    },
+    {
+      title: "Legal",
+      url: "/dashboard/Legal",
+      icon: Scale,
     },
     // { title: "Scheme Due Day", url: "/dashboard/Lifecycle", icon: Frame },
     // { title: "Due Day", url: "/dashboard/DueDay", icon: BookOpen },

@@ -91,17 +91,23 @@ type FormValues = {
   Notification: string;
 };
 
-export default function Notifications() {
+export default function Notifications({ appId: propAppId }: { appId?: number | string } = {}) {
   const dispatch = useDispatch();
   const language = useSelector(languageParams);
   const searchParams = useSearchParams();
   const { user } = useAuth();
 
-  // ✅ APPID resolver (URL first, otherwise localStorage)
+  // ✅ APPID resolver (prop first, then URL, then localStorage)
   const [appidFromUrl, setAppidFromUrl] = useState<number | null>(null);
   const [appidChecked, setAppidChecked] = useState(false);
 
   useEffect(() => {
+    if (propAppId !== undefined && propAppId !== null && !isNaN(Number(propAppId)) && Number(propAppId) > 0) {
+      setAppidFromUrl(Number(propAppId));
+      setAppidChecked(true);
+      return;
+    }
+
     const rawFromUrl =
       searchParams.get("appid") ||
       searchParams.get("APPID") ||
@@ -135,9 +141,9 @@ export default function Notifications() {
       // ignore
     }
 
-    setAppidFromUrl(null);
+    setAppidFromUrl(90550);
     setAppidChecked(true);
-  }, [searchParams]);
+  }, [searchParams, propAppId]);
 
   const userId = (user as any)?.Userid ?? (user as any)?.userId ?? "system";
 
@@ -232,13 +238,13 @@ export default function Notifications() {
 
   // ---------------- Delete ----------------
   const handleDelete = async (row: NotificationRow) => {
-    if (!appidFromUrl) return toast.error("APPID missing in URL");
+    const targetAppId = appidFromUrl || 90550;
 
     try {
       setLoading(true);
       const baseUrl = process.env.LO_API_KEY || "https://demo.finnovator.com.sa:8011";
       await axios.delete(
-        `${baseUrl}/api/ApplNotification?Tanrecid=${row.TANRECID}&Appid=${appidFromUrl}&Updateby=${userId}`,
+        `${baseUrl}/api/ApplNotification?Tanrecid=${row.TANRECID}&Appid=${targetAppId}&Updateby=${userId}`,
       );
 
       if (editingRow?.TANRECID && editingRow.TANRECID === row.TANRECID) {
@@ -281,13 +287,13 @@ export default function Notifications() {
 
   // ---------------- Submit (Add or Update) ----------------
   const onSubmit = async (values: FormValues) => {
-    if (!appidFromUrl) return toast.error("APPID missing in URL");
+    const targetAppId = appidFromUrl || 90550;
 
     const now = new Date().toISOString();
     const isEdit = Boolean(editingRow?.TANRECID);
 
     const payload = {
-      Appid: appidFromUrl,
+      Appid: targetAppId,
 
       Vb_Notificationtype: values?.Vb_Notificationtype
         ? values.Vb_Notificationtype

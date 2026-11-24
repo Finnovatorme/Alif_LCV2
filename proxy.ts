@@ -6,10 +6,10 @@ function buildCsp(nonce: string) {
 
   // Build connect-src from the SAME backend URLs the app uses.
   const bsUrl = process.env.BS_API_KEY || "https://demo.finnovator.com.sa:8010";
-  const loUrl = process.env.LO_API_KEY || "http://173.208.180.149:8084";
+  const loUrl = process.env.LO_API_KEY || "https://demo.finnovator.com.sa:8011";
   const lmUrl = process.env.LM_API_KEY || "http://173.208.180.149:8065";
   const hostUrl = process.env.HOST_API_KEY || "https://demo.finnovator.com.sa:8015";
-  const dmsUrl = process.env.DMS_API_KEY || "http://173.208.180.149:8088";
+  const dmsUrl = process.env.DMS_API_KEY || "http://38.247.164.60:8088";
   const amlUrl = process.env.AML_API_KEY || "http://173.208.180.149:8090";
 
   const connectSources = Array.from(
@@ -27,7 +27,7 @@ function buildCsp(nonce: string) {
       "http://173.208.180.149:8065",
       "http://173.208.180.149:8081",
       "http://173.208.180.149:8084",
-      "http://173.208.180.149:8088",
+      "http://38.247.164.60:8088/",
       "http://173.208.180.149:8090",
       "http://173.208.180.149:8098",
       ...(isDev ? ["ws:", "wss:"] : []),

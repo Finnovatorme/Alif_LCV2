@@ -13,6 +13,11 @@ import {
   ChevronDown,
   Check,
   Loader2,
+  AlertTriangle,
+  AlertCircle,
+  Calendar,
+  Clock,
+  ShieldAlert,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -34,6 +39,8 @@ import { toast } from "sonner";
 
 import { FollowUpModal } from "./FollowUpModal";
 import { EscalateModal } from "./EscalateModal";
+import { EscalatedInfoModal } from "./EscalatedInfoModal";
+import { AddLoanCommentModal } from "./AddLoanCommentModal";
 import {
   getNotificationNames,
   getNotificationTemplate,
@@ -54,6 +61,10 @@ interface ActionsProps {
   followupDetails?: Record<string, any>;
   loanContracts?: any[];
   skipInitialContractsFetch?: boolean;
+  backUrl?: string;
+  onBack?: () => void;
+  backLabel?: string;
+  compact?: boolean;
 }
 
 interface TemplateItem {
@@ -76,6 +87,10 @@ export const Actions: React.FC<ActionsProps> = ({
   followupDetails,
   loanContracts: initialLoanContracts,
   skipInitialContractsFetch = false,
+  backUrl,
+  onBack,
+  backLabel = "Back",
+  compact = false,
 }) => {
   const router = useRouter();
   const dispatch = useDispatch();
@@ -225,7 +240,124 @@ export const Actions: React.FC<ActionsProps> = ({
   const [openCommunicationModal, setOpenCommunicationModal] = useState(false);
   const [openFollowUpModal, setOpenFollowUpModal] = useState(false);
   const [openEscalateModal, setOpenEscalateModal] = useState(false);
+  const [openEscalatedInfoModal, setOpenEscalatedInfoModal] = useState(false);
+  const [openAddCommentModal, setOpenAddCommentModal] = useState(false);
+  const [escalatedState, setEscalatedState] = useState<{
+    isEscalated?: boolean;
+    escalatedTo?: string | null;
+    escalationDate?: string | null;
+    expireDate?: string | null;
+    reason?: string | null;
+  } | null>(null);
   const [commType, setCommType] = useState<"sms" | "whatsapp" | "email">("sms");
+
+  // Sync escalation state from sessionStorage and parent props
+  useEffect(() => {
+    let stored: any = null;
+    if (typeof window !== "undefined") {
+      try {
+        const item = sessionStorage.getItem("currentEscalationData");
+        if (item) stored = JSON.parse(item);
+      } catch (e) {
+        // ignore
+      }
+    }
+
+    const isEsc = Boolean(
+      customerDetails?.ISESCALATED ??
+      customerDetails?.isEscalated ??
+      customerDetails?.IsEscalated ??
+      smartView?.ISESCALATED ??
+      smartView?.isEscalated ??
+      smartView?.IsEscalated ??
+      followupDetails?.ISESCALATED ??
+      followupDetails?.isEscalated ??
+      followupDetails?.IsEscalated ??
+      stored?.ISESCALATED
+    );
+
+    const toUser =
+      customerDetails?.ESCALATEDTO ||
+      customerDetails?.escalatedTo ||
+      smartView?.ESCALATEDTO ||
+      smartView?.escalatedTo ||
+      followupDetails?.ESCALATEDTO ||
+      stored?.ESCALATEDTO ||
+      null;
+
+    const escDate =
+      customerDetails?.ESCALATIONDATE ||
+      customerDetails?.escalationDate ||
+      smartView?.ESCALATIONDATE ||
+      smartView?.escalationDate ||
+      followupDetails?.ESCALATIONDATE ||
+      stored?.ESCALATIONDATE ||
+      null;
+
+    const expDate =
+      customerDetails?.EXPIREDATE ||
+      customerDetails?.expireDate ||
+      smartView?.EXPIREDATE ||
+      smartView?.expireDate ||
+      followupDetails?.EXPIREDATE ||
+      stored?.EXPIREDATE ||
+      null;
+
+    const reason =
+      customerDetails?.LCESCALATIONREASON ||
+      customerDetails?.lcescalationreason ||
+      smartView?.LCESCALATIONREASON ||
+      smartView?.lcescalationreason ||
+      stored?.LCESCALATIONREASON ||
+      null;
+
+    if (isEsc || toUser || escDate || expDate) {
+      setEscalatedState({
+        isEscalated: isEsc,
+        escalatedTo: toUser,
+        escalationDate: escDate,
+        expireDate: expDate,
+        reason,
+      });
+    }
+  }, [customerDetails, smartView, followupDetails]);
+
+  const isCaseEscalated = Boolean(
+    escalatedState?.isEscalated ??
+    customerDetails?.ISESCALATED ??
+    customerDetails?.isEscalated ??
+    smartView?.ISESCALATED ??
+    smartView?.isEscalated ??
+    followupDetails?.ISESCALATED
+  );
+
+  const resolvedEscalatedTo =
+    escalatedState?.escalatedTo ||
+    customerDetails?.ESCALATEDTO ||
+    smartView?.ESCALATEDTO ||
+    followupDetails?.ESCALATEDTO ||
+    null;
+
+  const resolvedEscalationDate =
+    escalatedState?.escalationDate ||
+    customerDetails?.ESCALATIONDATE ||
+    smartView?.ESCALATIONDATE ||
+    followupDetails?.ESCALATIONDATE ||
+    null;
+
+  const resolvedExpireDate =
+    escalatedState?.expireDate ||
+    customerDetails?.EXPIREDATE ||
+    smartView?.EXPIREDATE ||
+    followupDetails?.EXPIREDATE ||
+    null;
+
+  const resolvedEscalationReason =
+    escalatedState?.reason ||
+    customerDetails?.LCESCALATIONREASON ||
+    smartView?.LCESCALATIONREASON ||
+    followupDetails?.LCESCALATIONREASON ||
+    null;
 
   // Dynamic template & history states
   const [loadingTemplates, setLoadingTemplates] = useState(false);
@@ -707,17 +839,25 @@ export const Actions: React.FC<ActionsProps> = ({
     <>
       {/* Top Action Bar Container */}
       <div className="relative group rounded-3xl p-[1px] bg-gradient-to-b from-gray-200 to-transparent dark:from-gray-800 transition-all duration-500 hover:shadow-[0_0_40px_-10px_rgba(15,142,221,0.15)]">
-        <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-2xl rounded-[23px] p-5 border border-white/40 dark:border-gray-700/30 flex flex-wrap items-center justify-between gap-4 shadow-[inset_0_1px_1px_rgba(255,255,255,0.4)]">
+        <div className={`bg-white/80 dark:bg-gray-900/80 backdrop-blur-2xl rounded-[23px] ${compact ? "p-3 px-4" : "p-5"} border border-white/40 dark:border-gray-700/30 flex flex-wrap items-center justify-between gap-3 shadow-[inset_0_1px_1px_rgba(255,255,255,0.4)]`}>
           {/* Left Communication Action Buttons */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5">
             <Button
               variant="outline"
               size="sm"
-              onClick={() => router.push("/dashboard/SmartView/Followup")}
-              className="h-10 px-3.5 rounded-xl border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all flex items-center gap-2 cursor-pointer text-xs mr-2 shadow-xs"
+              onClick={() => {
+                if (onBack) {
+                  onBack();
+                } else if (backUrl) {
+                  router.push(backUrl);
+                } else {
+                  router.push("/dashboard/SmartView/Followup");
+                }
+              }}
+              className="h-10 px-3.5 rounded-xl border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all flex items-center gap-2 cursor-pointer text-xs mr-1 shadow-xs font-medium"
             >
               <ArrowLeft className="w-4 h-4" />
-              Back
+              {backLabel}
             </Button>
 
             <Button
@@ -771,9 +911,36 @@ export const Actions: React.FC<ActionsProps> = ({
              Add Follow up
             </Button>
 
-            <Button onClick={() => setOpenEscalateModal(true)} className="h-10 px-6 rounded-xl bg-red-800 hover:bg-red-900 text-white text-xs font-bold shadow-sm cursor-pointer transition-all active:scale-95">
-              Escalate
+            <Button
+              type="button"
+              onClick={() => setOpenAddCommentModal(true)}
+              className="h-10 px-4 rounded-xl border border-cyan-600 dark:border-cyan-500 text-cyan-600 dark:text-cyan-400 bg-white dark:bg-gray-800 hover:bg-cyan-50 dark:hover:bg-cyan-900/30 text-xs font-semibold cursor-pointer shadow-xs transition-all active:scale-95 flex items-center gap-1.5"
+            >
+              <MessageSquare className="w-3.5 h-3.5" />
+              <span>{language === 2 ? "ملاحظة" : "Comment"}</span>
             </Button>
+
+            {isCaseEscalated ? (
+              <Button
+                type="button"
+                onClick={() => setOpenEscalatedInfoModal(true)}
+                className="h-10 px-5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/40 text-amber-600 dark:text-amber-400 text-xs font-bold shadow-xs cursor-pointer transition-all active:scale-95 flex items-center gap-2"
+                title={language === 2 ? "الحالة مصعدة - انقر لعرض تفاصيل التصعيد" : "Case Escalated - Click to view escalation details"}
+              >
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+                </span>
+                <span>{language === 2 ? "تم التصعيد" : "Escalated"}</span>
+              </Button>
+            ) : (
+              <Button
+                onClick={() => setOpenEscalateModal(true)}
+                className="h-10 px-6 rounded-xl bg-red-800 hover:bg-red-900 text-white text-xs font-bold shadow-sm cursor-pointer transition-all active:scale-95"
+              >
+                {language === 2 ? "تصعيد" : "Escalate"}
+              </Button>
+            )}
           </div>
         </div>
       </div>
@@ -1080,6 +1247,46 @@ export const Actions: React.FC<ActionsProps> = ({
         customerDetails={customerDetails}
         followupDetails={followupDetails}
         loanContracts={loanContracts}
+        onSuccess={(data) => {
+          setEscalatedState({
+            isEscalated: true,
+            escalatedTo: data?.ESCALATEDTO || data?.escalatedTo || "Team",
+            escalationDate:
+              data?.ESCALATIONDATE || data?.escalationDate || new Date().toISOString(),
+            expireDate: data?.EXPIREDATE || data?.expireDate || null,
+            reason: data?.LCESCALATIONREASON || data?.reason || null,
+          });
+        }}
+      />
+
+      {/* 5. ESCALATED DETAILS INFO MODAL (When Case is Already Escalated) */}
+      <EscalatedInfoModal
+        isOpen={openEscalatedInfoModal}
+        onClose={() => setOpenEscalatedInfoModal(false)}
+        language={language}
+        cifId={activeCifId}
+        customerName={customerFullName}
+        escalatedTo={resolvedEscalatedTo}
+        escalationDate={resolvedEscalationDate}
+        expireDate={resolvedExpireDate}
+        reason={resolvedEscalationReason}
+      />
+
+      {/* 6. ADD LOAN COMMENT MODAL */}
+      <AddLoanCommentModal
+        isOpen={openAddCommentModal}
+        onClose={() => setOpenAddCommentModal(false)}
+        tmcaRecId={
+          followupDetails?.TMCARECID ??
+          followupDetails?.tmcarecid ??
+          followupDetails?.tmcaRecId ??
+          customerDetails?.TMCARECID
+        }
+        cifId={activeCifId}
+        loanId={loanContracts?.[0]?.LOANID ?? followupDetails?.LOANID}
+        appId={customerDetails?.APPID ?? followupDetails?.APPID}
+        customerName={customerFullName}
+        language={language}
       />
     </>
   );

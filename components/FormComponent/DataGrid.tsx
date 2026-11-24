@@ -440,7 +440,7 @@ export function ReusableDataTable<T extends Record<string, any>>(
       <TableRow
         ref={setNodeRef}
         data-dragging={isDragging}
-        className={`border-b last:border-0 hover:bg-[gray-100] dark:hover:bg-gray-700 ${isDragging ? "bg-white dark:bg-[#0a0a0a]" : ""
+        className={`border-b last:border-0 hover:bg-gray-100 dark:hover:bg-gray-800/80 transition-colors ${isDragging ? "bg-white dark:bg-[#0a0a0a]" : ""
           }`}
       >
         {row.getVisibleCells().map((cell) => {
