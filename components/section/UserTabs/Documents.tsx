@@ -270,7 +270,7 @@ export default function Document({ tab, appId }: ApplicationProps) {
   ) => {
     setIsLoading(true);
     try {
-      const dmsUrl = process.env.DMS_API_KEY || "https://demo.finnovator.com.sa:8010";
+      const dmsUrl = (process.env.DMS_API_KEY || "http://38.247.164.60:8088").replace(/\/+$/, "");
       const response = await axios.get(
         `${dmsUrl}/api/DocManage/GetFile`,
         {
@@ -333,7 +333,7 @@ export default function Document({ tab, appId }: ApplicationProps) {
       const options = {
         financierID: userData?.FINANCIERID || null,
         cifID: userData?.CIFID || null,
-        idNumber: userDetails?.IDNUMBER,
+        idNumber:userData?.CIFID || null,
         transactionID: (userData?.APPID ?? resolvedAppId)?.toString() || null,
         moduleID: 1,
         documentType: allDocuments?.[index]?.DOCUMENTTYPE,
@@ -342,7 +342,7 @@ export default function Document({ tab, appId }: ApplicationProps) {
         fileName: file.name,
       };
 
-      const dmsUrl = process.env.DMS_API_KEY || "https://demo.finnovator.com.sa:8010";
+      const dmsUrl = (process.env.DMS_API_KEY || "http://38.247.164.60:8088").replace(/\/+$/, "");
       const response = await axios.post(
         `${dmsUrl}/api/DocManage/PutFile`,
         options,

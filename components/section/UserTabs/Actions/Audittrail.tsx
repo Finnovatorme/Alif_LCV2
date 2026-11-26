@@ -25,7 +25,7 @@ interface AuditTrailRow extends AuditTrailApi {
   id: number;
 }
 
-export default function AuditTrail() {
+export default function AuditTrail({ appId: propAppId }: { appId?: number | string } = {}) {
   const router = useRouter();
   const appParams = useSelector(dashboardParams);
   const language = useSelector(languageParams);
@@ -39,13 +39,21 @@ export default function AuditTrail() {
     return Number.isFinite(n) ? n : fallback;
   };
 
+  const resolvedAppId =
+    (propAppId && !isNaN(Number(propAppId)) && Number(propAppId) > 0 ? Number(propAppId) : null) ||
+    appParams?.APPID ||
+    (typeof window !== "undefined"
+      ? Number(localStorage.getItem("selectedAppId") || localStorage.getItem("APPID")) || null
+      : null) ||
+    90550;
+
   const fetchRecords = async () => {
-    if (!appParams?.APPID) return;
+    if (!resolvedAppId) return;
 
     try {
       setLoading(true);
 
-      const params = { APPID: appParams.APPID, Language: language };
+      const params = { APPID: resolvedAppId, Language: language };
       const response = await auditTrailGet(params);
 
       console.log("AuditTrail API:", response);
@@ -76,10 +84,10 @@ export default function AuditTrail() {
   };
 
   useEffect(() => {
-    if (appParams?.APPID) {
+    if (resolvedAppId) {
       fetchRecords();
     }
-  }, [appParams?.APPID, language]);
+  }, [resolvedAppId, language]);
 
   const columns: ColumnDef<AuditTrailRow>[] = useMemo(
     () => [

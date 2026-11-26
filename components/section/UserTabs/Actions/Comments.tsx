@@ -85,17 +85,23 @@ type FormValues = {
   Comment: string;
 };
 
-export default function Comments() {
+export default function Comments({ appId: propAppId }: { appId?: number | string } = {}) {
   const dispatch = useDispatch();
   const language = useSelector(languageParams);
   const searchParams = useSearchParams();
   const { user } = useAuth();
 
-  // ✅ APPID resolver (URL first, otherwise localStorage)
+  // ✅ APPID resolver (prop first, then URL, then localStorage)
   const [appidFromUrl, setAppidFromUrl] = useState<number | null>(null);
   const [appidChecked, setAppidChecked] = useState(false);
 
   useEffect(() => {
+    if (propAppId !== undefined && propAppId !== null && !isNaN(Number(propAppId)) && Number(propAppId) > 0) {
+      setAppidFromUrl(Number(propAppId));
+      setAppidChecked(true);
+      return;
+    }
+
     // URL: ?appid=40236
     const rawFromUrl =
       searchParams.get("appid") ||
@@ -130,9 +136,9 @@ export default function Comments() {
       // ignore
     }
 
-    setAppidFromUrl(null);
+    setAppidFromUrl(90550);
     setAppidChecked(true);
-  }, [searchParams]);
+  }, [searchParams, propAppId]);
 
   const userId = (user as any)?.Userid ?? (user as any)?.userId ?? "system";
 
@@ -237,12 +243,13 @@ export default function Comments() {
 
   // ---------------- Delete ----------------
   const handleDelete = async (row: CommentRow) => {
-    if (!appidFromUrl) return toast.error("APPID missing in URL");
+    const targetAppId = appidFromUrl || 90550;
 
     try {
       setLoading(true);
+      const baseUrl = process.env.LO_API_KEY || "https://demo.finnovator.com.sa:8011";
       await axios.delete(
-        `${process.env.LO_API_KEY}/api/ApplComment/?Tacrecid=${row.TACRECID}&Appid=${appidFromUrl}&Updateby=${userId}`,
+        `${baseUrl}/api/ApplComment/?Tacrecid=${row.TACRECID}&Appid=${targetAppId}&Updateby=${userId}`,
       );
 
       // if deleting the same row being edited -> cancel edit
@@ -286,13 +293,13 @@ export default function Comments() {
 
   // ---------------- Submit (Add or Update) ----------------
   const onSubmit = async (values: FormValues) => {
-    if (!appidFromUrl) return toast.error("APPID missing in URL");
+    const targetAppId = appidFromUrl || 90550;
 
     const now = new Date().toISOString();
     const isEdit = Boolean(editingRow?.TACRECID);
 
     const payload = {
-      Appid: appidFromUrl,
+      Appid: targetAppId,
       Vb_Commentcategory: values?.Vb_Commentcategory
         ? values.Vb_Commentcategory
         : null,
@@ -313,15 +320,16 @@ export default function Comments() {
 
     try {
       setLoading(true);
+      const baseUrl = process.env.LO_API_KEY || "https://demo.finnovator.com.sa:8011";
 
       if (isEdit) {
         await axios.put(
-          `${process.env.LO_API_KEY}/api/ApplComment/${editingRow!.TACRECID}`,
+          `${baseUrl}/api/ApplComment/${editingRow!.TACRECID}`,
           payload,
         );
         toast.success("Comment updated");
       } else {
-        await axios.post(`${process.env.LO_API_KEY}/api/ApplComment`, payload);
+        await axios.post(`${baseUrl}/api/ApplComment`, payload);
         toast.success("Comment saved");
       }
 

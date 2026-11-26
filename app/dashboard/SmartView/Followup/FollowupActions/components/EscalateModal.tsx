@@ -35,7 +35,7 @@ interface EscalateModalProps {
   customerDetails?: Record<string, any>;
   followupDetails?: Record<string, any>;
   loanContracts?: any[];
-  onSuccess?: () => void;
+  onSuccess?: (escalationData?: any) => void;
 }
 
 export const EscalateModal: React.FC<EscalateModalProps> = ({
@@ -300,8 +300,25 @@ export const EscalateModal: React.FC<EscalateModalProps> = ({
         res?.responsedescription || "Case escalated successfully!"
       );
 
+      const selectedUserObj = users.find((u) => String(u.UserId) === selectedUserId);
+      const targetName = isEveryone
+        ? (language === 2 ? "الجميع" : "Everyone")
+        : (selectedUserObj?.UserName || selectedUserId || "Reviewer");
+
+      const newEscalationInfo = {
+        ISESCALATED: true,
+        ESCALATEDTO: targetName,
+        ESCALATIONDATE: new Date().toISOString(),
+        EXPIREDATE: null,
+        LCESCALATIONREASON: comments.trim() || null,
+      };
+
+      if (typeof window !== "undefined") {
+        sessionStorage.setItem("currentEscalationData", JSON.stringify(newEscalationInfo));
+      }
+
       resetForm();
-      onSuccess?.();
+      onSuccess?.(newEscalationInfo);
       onClose();
     } catch (err: any) {
       console.error("Error creating escalation:", err);

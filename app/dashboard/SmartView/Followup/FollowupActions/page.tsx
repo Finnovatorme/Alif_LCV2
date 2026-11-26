@@ -98,6 +98,20 @@ export default function FollowupActionsPage() {
       }
     }
 
+    let savedEscalation: any = null;
+    if (typeof window !== "undefined") {
+      try {
+        const stored = sessionStorage.getItem("currentEscalationData");
+        if (stored) savedEscalation = JSON.parse(stored);
+      } catch (e) {
+        console.error("Error parsing saved escalation data", e);
+      }
+    }
+
+    if (savedEscalation) {
+      initialCust = { ...savedEscalation, ...initialCust };
+    }
+
     if (Object.keys(initialCust).length > 0) {
       setCustomerDetails((prev) => ({ ...initialCust, ...prev }));
     }
@@ -129,9 +143,31 @@ export default function FollowupActionsPage() {
         ]);
 
         if (Array.isArray(custRes) && custRes.length > 0) {
-          setCustomerDetails((prev) => ({ ...prev, ...custRes[0] }));
+          setCustomerDetails((prev) => ({
+            ...prev,
+            ...custRes[0],
+            ISESCALATED:
+              custRes[0]?.ISESCALATED ?? prev?.ISESCALATED ?? savedEscalation?.ISESCALATED,
+            ESCALATIONDATE:
+              custRes[0]?.ESCALATIONDATE || prev?.ESCALATIONDATE || savedEscalation?.ESCALATIONDATE,
+            EXPIREDATE:
+              custRes[0]?.EXPIREDATE || prev?.EXPIREDATE || savedEscalation?.EXPIREDATE,
+            ESCALATEDTO:
+              custRes[0]?.ESCALATEDTO || prev?.ESCALATEDTO || savedEscalation?.ESCALATEDTO,
+          }));
         } else if (custRes && typeof custRes === "object" && !(custRes as any).error) {
-          setCustomerDetails((prev) => ({ ...prev, ...custRes }));
+          setCustomerDetails((prev) => ({
+            ...prev,
+            ...custRes,
+            ISESCALATED:
+              (custRes as any)?.ISESCALATED ?? prev?.ISESCALATED ?? savedEscalation?.ISESCALATED,
+            ESCALATIONDATE:
+              (custRes as any)?.ESCALATIONDATE || prev?.ESCALATIONDATE || savedEscalation?.ESCALATIONDATE,
+            EXPIREDATE:
+              (custRes as any)?.EXPIREDATE || prev?.EXPIREDATE || savedEscalation?.EXPIREDATE,
+            ESCALATEDTO:
+              (custRes as any)?.ESCALATEDTO || prev?.ESCALATEDTO || savedEscalation?.ESCALATEDTO,
+          }));
         }
 
         if (Array.isArray(folRes)) {

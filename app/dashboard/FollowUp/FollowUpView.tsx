@@ -92,7 +92,7 @@ export const FollowUpView: React.FC<FollowUpViewProps> = ({
   const config = SCREEN_CONFIG[screenType] || SCREEN_CONFIG.pending;
   const ScreenIcon = config.icon;
 
-  // Resolve user id from session or stored auth data
+
   const resolvedUserId =
     user?.UserId ||
     user?.userId ||
@@ -138,6 +138,21 @@ export const FollowUpView: React.FC<FollowUpViewProps> = ({
         ? Number(row.APPID)
         : null;
 
+    const isEscalatedVal = Boolean(
+      row.ISESCALATED ?? row.isEscalated ?? row.IsEscalated
+    );
+    const escalationData = {
+      ISESCALATED: isEscalatedVal,
+      ESCALATIONDATE: row.ESCALATIONDATE || row.escalationDate || null,
+      EXPIREDATE: row.EXPIREDATE || row.expireDate || null,
+      ESCALATEDTO: row.ESCALATEDTO || row.escalatedTo || null,
+      LCESCALATIONREASON: row.LCESCALATIONREASON || row.lcescalationreason || null,
+    };
+
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem("currentEscalationData", JSON.stringify(escalationData));
+    }
+
     if (cifId !== "") {
       dispatch(setSelectedUserId(Number(cifId) || 0));
       dispatch(
@@ -146,6 +161,7 @@ export const FollowUpView: React.FC<FollowUpViewProps> = ({
           CIFID: cifId,
           APPID: realAppId,
           hideButton: false,
+          ...escalationData,
         })
       );
       if (realAppId) {
@@ -160,6 +176,7 @@ export const FollowUpView: React.FC<FollowUpViewProps> = ({
           CIFID: cifId,
           APPID: realAppId,
           hideButton: false,
+          ...escalationData,
         })
       );
     }
@@ -357,7 +374,6 @@ export const FollowUpView: React.FC<FollowUpViewProps> = ({
 
   return (
     <div className="flex flex-1 flex-col min-h-screen bg-gray-50 dark:bg-[#0a0a0a] p-6 lg:p-10 font-sans gap-8">
-      {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-center gap-3">
           <div

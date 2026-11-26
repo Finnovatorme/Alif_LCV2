@@ -131,3 +131,22 @@
   --shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
   --padding: 0.75rem 1rem;
 }
+
+/* Custom sleek dark scrollbar across app */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.25);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.45);
+}

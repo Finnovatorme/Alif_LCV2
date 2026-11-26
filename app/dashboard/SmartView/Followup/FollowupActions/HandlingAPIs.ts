@@ -426,3 +426,102 @@ export const addNewEscalation = async (
   return response.data;
 };
 
+export interface AddLoanCommentPayload {
+  tmcarecid?: number;
+  financierid?: number;
+  cifid?: number;
+  appid?: number;
+  loanid?: number;
+  fromuserid: string;
+  touserid?: string | null;
+  istoeveryone: boolean;
+  comments: string;
+  maker?: string;
+}
+
+export interface GetLoanCommentsPayload {
+  financierid?: number;
+  userid: string;
+  transactionid?: number;
+  cifid?: number;
+  appid?: number;
+  loanid?: number;
+  todate?: string;
+  fromdate?: string;
+  language?: number;
+}
+
+export interface LoanCommentItem {
+  TLERECID?: number;
+  TMCARECID?: number;
+  FINANCIERID?: number;
+  CIFID?: number;
+  APPID?: number;
+  LOANID?: number;
+  FROMUSERID?: string;
+  FROMUSERNAME?: string;
+  TOUSERID?: string | null;
+  TOUSERNAME?: string;
+  ISTOEVERYONE?: boolean;
+  COMMENTS?: string;
+  ISESCALATION?: boolean;
+  MAKER?: string;
+  MAKEDATE?: string;
+  UPDATEBY?: string | null;
+  UPDATEDATE?: string | null;
+  RECSTATUS?: boolean;
+  [key: string]: any;
+}
+
+/**
+ * 11. Add New Loan Comment
+ * Endpoint: POST /api/Comments/addnewcomments
+ */
+export const addLoanComment = async (payload: AddLoanCommentPayload) => {
+  const hostUrl = process.env.HOST_API_KEY || "https://demo.finnovator.com.sa:8015";
+  const body = {
+    tmcarecid: Number(payload.tmcarecid || 0),
+    financierid: Number(payload.financierid || 1),
+    cifid: Number(payload.cifid || 0),
+    appid: Number(payload.appid || 0),
+    loanid: Number(payload.loanid || 0),
+    fromuserid: String(payload.fromuserid || "sysadmin"),
+    touserid: payload.touserid ? String(payload.touserid) : null,
+    istoeveryone: Boolean(payload.istoeveryone),
+    comments: String(payload.comments || ""),
+    maker: String(payload.maker || payload.fromuserid || "sysadmin"),
+  };
+  const response = await axios.post(`${hostUrl}/api/Comments/addnewcomments`, body);
+  return response.data;
+};
+
+/**
+ * 12. Get Loan Comments
+ * Endpoint: POST /api/Comments/getloancomments
+ */
+export const getLoanComments = async (
+  payload: GetLoanCommentsPayload
+): Promise<LoanCommentItem[]> => {
+  const hostUrl = process.env.HOST_API_KEY || "https://demo.finnovator.com.sa:8015";
+  const body = {
+    financierid: Number(payload.financierid || 1),
+    userid: String(payload.userid || "sysadmin"),
+    transactionid: Number(payload.transactionid || 0),
+    cifid: Number(payload.cifid || 0),
+    appid: Number(payload.appid || 0),
+    loanid: Number(payload.loanid || 0),
+    todate: payload.todate || new Date().toISOString(),
+    fromdate: payload.fromdate || "2020-01-01T00:00:00.000Z",
+    language: Number(payload.language ?? 1),
+  };
+  const response = await axios.post(`${hostUrl}/api/Comments/getloancomments`, body);
+  if (response.data?.data && Array.isArray(response.data.data)) {
+    return response.data.data;
+  }
+  if (Array.isArray(response.data)) {
+    return response.data;
+  }
+  return [];
+};
+
+

@@ -184,3 +184,12 @@ export const getFollowUpOwnershipData = async (
     subordinateCases,
   };
 };
+
+export {
+  addLoanComment,
+  getLoanComments,
+  type AddLoanCommentPayload,
+  type GetLoanCommentsPayload,
+  type LoanCommentItem,
+} from "../SmartView/Followup/FollowupActions/HandlingAPIs";
+

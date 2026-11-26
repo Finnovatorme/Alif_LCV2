@@ -17,7 +17,7 @@ const Kpi = ({
       "from-emerald-500/10 to-emerald-500/0 text-emerald-700 dark:text-emerald-300",
 
     special:
-      "from-cyan-500/20 via-sky-400/10 to-transparent text-cyan-800 dark:text-cyan-300",
+      "from-rose-500/20 via-red-400/10 to-transparent text-rose-800 dark:text-rose-300"
   };
 
   return (
