@@ -43,9 +43,32 @@ export default function Page() {
         ? Number(row.APPID)
         : null;
 
+    const isEscalatedVal = Boolean(
+      row.ISESCALATED ?? row.isEscalated ?? row.IsEscalated
+    );
+    const escalationData = {
+      ISESCALATED: isEscalatedVal,
+      ESCALATIONDATE: row.ESCALATIONDATE || row.escalationDate || null,
+      EXPIREDATE: row.EXPIREDATE || row.expireDate || null,
+      ESCALATEDTO: row.ESCALATEDTO || row.escalatedTo || null,
+      LCESCALATIONREASON: row.LCESCALATIONREASON || row.lcescalationreason || null,
+    };
+
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem("currentEscalationData", JSON.stringify(escalationData));
+    }
+
     if (cifId !== "") {
       dispatch(setSelectedUserId(Number(cifId) || 0));
-      dispatch(hasDashabordParams({ ...row, CIFID: cifId, APPID: realAppId, hideButton: false }));
+      dispatch(
+        hasDashabordParams({
+          ...row,
+          CIFID: cifId,
+          APPID: realAppId,
+          hideButton: false,
+          ...escalationData,
+        })
+      );
       if (realAppId) {
         localStorage.setItem("selectedAppId", String(realAppId));
       } else {
@@ -53,7 +76,13 @@ export default function Page() {
       }
       localStorage.setItem(
         "followupParams",
-        JSON.stringify({ ...row, CIFID: cifId, APPID: realAppId, hideButton: false })
+        JSON.stringify({
+          ...row,
+          CIFID: cifId,
+          APPID: realAppId,
+          hideButton: false,
+          ...escalationData,
+        })
       );
     }
     router.push("/dashboard/SmartView/Followup/FollowupActions");

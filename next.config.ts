@@ -5,7 +5,7 @@ const bsApiUrl =
   "https://demo.finnovator.com.sa:8010";
 const loApiUrl =
   process.env.LO_API_KEY ||
-  "http://173.208.180.149:8084";
+  "https://demo.finnovator.com.sa:8011";
 const lmApiUrl =
   process.env.LM_API_KEY ||
   "http://173.208.180.149:8065";
@@ -14,7 +14,7 @@ const hostApiUrl =
   "https://demo.finnovator.com.sa:8015";
 const dmsApiUrl =
   process.env.DMS_API_KEY ||
-  "http://173.208.180.149:8088";
+  "http://38.247.164.60:8088";
 const amlApiUrl =
   process.env.AML_API_KEY ||
   "http://173.208.180.149:8090";

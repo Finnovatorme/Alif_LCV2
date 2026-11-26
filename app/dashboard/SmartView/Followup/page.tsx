@@ -133,7 +133,23 @@ export default function FollowupPage() {
                     ? Number(row.AppId)
                     : null;
         const lang = selectedLanguage === "ar" ? 2 : 1;
-        dispatch(hasDashabordParams({ ...row, CIFID: cifId, APPID: realAppId, language: lang }));
+
+        const isEscalatedVal = Boolean(
+            (row as any).ISESCALATED ?? (row as any).isEscalated ?? (row as any).IsEscalated
+        );
+        const escalationData = {
+            ISESCALATED: isEscalatedVal,
+            ESCALATIONDATE: (row as any).ESCALATIONDATE || (row as any).escalationDate || null,
+            EXPIREDATE: (row as any).EXPIREDATE || (row as any).expireDate || null,
+            ESCALATEDTO: (row as any).ESCALATEDTO || (row as any).escalatedTo || null,
+            LCESCALATIONREASON: (row as any).LCESCALATIONREASON || (row as any).lcescalationreason || null,
+        };
+
+        if (typeof window !== "undefined") {
+            sessionStorage.setItem("currentEscalationData", JSON.stringify(escalationData));
+        }
+
+        dispatch(hasDashabordParams({ ...row, CIFID: cifId, APPID: realAppId, language: lang, ...escalationData }));
         if (cifId && !isNaN(Number(cifId))) {
             dispatch(setSelectedUserId(Number(cifId)));
         }
@@ -142,7 +158,7 @@ export default function FollowupPage() {
         } else {
             localStorage.removeItem("selectedAppId");
         }
-        localStorage.setItem("followupParams", JSON.stringify({ CIFID: cifId, APPID: realAppId, language: lang, ...row }));
+        localStorage.setItem("followupParams", JSON.stringify({ CIFID: cifId, APPID: realAppId, language: lang, ...row, ...escalationData }));
         router.push("/dashboard/SmartView/Followup/FollowupActions");
     };
 

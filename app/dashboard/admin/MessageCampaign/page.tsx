@@ -46,7 +46,7 @@ export default function MessageCampaignPage() {
 
     const language = selectedLanguage === "ar" ? 2 : 1;
 
-    // Fetch dropdown options without Redux
+
     useEffect(() => {
         const fetchAllDropdowns = async () => {
             const categories = [
@@ -83,7 +83,6 @@ export default function MessageCampaignPage() {
         fetchAllDropdowns();
     }, [language]);
 
-    // Fetch Schedule Notification Grid Data
     const fetchData = async () => {
         setLoading(true);
         try {
@@ -112,7 +111,7 @@ export default function MessageCampaignPage() {
         fetchData();
     }, [language]);
 
-    // Table Columns
+
     const tableColumns = [
         {
             id: "actions",
@@ -185,7 +184,6 @@ export default function MessageCampaignPage() {
         UPDATEDATE: "Update Date",
     };
 
-    // Form Fields Configuration
     const fields = useMemo(
         () => [
             {
